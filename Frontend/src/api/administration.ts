@@ -23,6 +23,7 @@ export type EmployeeResponse = ContactProfile & {
   id: number;
   userId: number;
   companyId: number;
+  companyRole: "owner" | "employee";
 };
 
 export type ClientResponse = ContactProfile & {

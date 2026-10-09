@@ -210,6 +210,45 @@ public sealed class AdministrationIntegrationTests(
     }
 
     [Fact]
+    public async Task EmployeeCreationCanAssignCompanyOwnerRole()
+    {
+        var companyId = (await CreateCompanyAsync("Owner Assignment Studio"))
+            .GetProperty("id").GetInt64();
+
+        using var createEmployee = await fixture.Client.PostAsJsonAsync(
+            "/api/admin/employees",
+            new
+            {
+                username = "company.owner",
+                password = "secret",
+                roleIds = new[] { 3 },
+                companyId,
+                companyRole = "owner",
+                displayName = "Owner",
+                fullName = "Company Owner",
+                nif = "123456789",
+                email = "owner@example.test",
+                phoneNumber = "910000000",
+                address = "Lisbon"
+            });
+        Assert.Equal(HttpStatusCode.Created, createEmployee.StatusCode);
+        var employee = await createEmployee.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("owner", employee.GetProperty("companyRole").GetString());
+
+        using var login = await fixture.Client.PostAsJsonAsync(
+            "/api/auth/login",
+            new { username = "company.owner", password = "secret" });
+        var loginBody = await login.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(
+            ["employee", "company owner"],
+            loginBody.GetProperty("roles").EnumerateArray()
+                .Select(candidate => candidate.GetString()));
+
+        var profile = await fixture.Client.GetFromJsonAsync<JsonElement>("/api/profile");
+        Assert.Equal("owner", profile.GetProperty("companyRole").GetString());
+    }
+
+    [Fact]
     public async Task ClientCreationAndDeletionOperateOnTheWholeAccount()
     {
         using var createClient = await fixture.Client.PostAsJsonAsync(

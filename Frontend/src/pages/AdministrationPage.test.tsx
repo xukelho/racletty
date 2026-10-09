@@ -20,7 +20,7 @@ const companies = [
   { id: 20, name: "Arquivo", legalName: "Arquivo, Lda.", nif: "502", email: "arquivo@forma.pt", phoneNumber: "211", address: "Porto", website: null, isActive: false, createdAt: "2026-01-01", createdBy: 0, updatedAt: "2026-01-02", updatedBy: 0 },
 ];
 const employees = [
-  { id: 100, userId: 2, companyId: 20, displayName: "Ana Martins", fullName: "Ana Sofia Martins", nif: "123", email: "ana@forma.pt", phoneNumber: "910", address: "Lisboa" },
+  { id: 100, userId: 2, companyId: 20, companyRole: "employee", displayName: "Ana Martins", fullName: "Ana Sofia Martins", nif: "123", email: "ana@forma.pt", phoneNumber: "910", address: "Lisboa" },
 ];
 const clients = [
   { id: 200, userId: 3, companyIds: [], displayName: "Marta Silva", fullName: "Marta Silva", nif: "456", email: "marta@email.pt", phoneNumber: "911", address: "Setúbal" },
@@ -127,7 +127,7 @@ describe("AdministrationPage", () => {
     })));
   });
 
-  it("creates an employee atomically with a required company and optional architect role", async () => {
+  it("creates an employee atomically with a selected company role and optional architect role", async () => {
     const fetchMock = installApiMock((path, method) =>
       path === "/api/admin/employees" && method === "POST"
         ? jsonResponse({ ...employees[0], id: 101, userId: 4, companyId: 10 }, 201)
@@ -141,11 +141,12 @@ describe("AdministrationPage", () => {
     await user.type(screen.getByLabelText("Palavra-passe"), "secret");
     await user.selectOptions(screen.getByLabelText("Empresa"), "10");
     await user.click(screen.getByLabelText("Arquiteto/Arquiteta"));
+    await user.click(screen.getByLabelText("Proprietário da empresa"));
     await fillContact(user);
     await user.click(screen.getByRole("button", { name: "Guardar" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/admin/employees", expect.objectContaining({
-      method: "POST", body: expect.stringContaining('"roleIds":[33,44]'),
+      method: "POST", body: expect.stringMatching(/"roleIds":\[33,44\].*"companyRole":"owner"/),
     })));
     expect(fetchMock).not.toHaveBeenCalledWith("/api/admin/users", expect.objectContaining({ method: "POST" }));
   });
