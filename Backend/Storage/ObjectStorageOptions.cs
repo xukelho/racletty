@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Blueprint.Api.Storage;
+namespace Racletty.Api.Storage;
 
 public sealed class ObjectStorageOptions
 {

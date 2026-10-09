@@ -1,8 +1,8 @@
 using System.Text.Json;
-using Blueprint.Api.Data;
+using Racletty.Api.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Services;
+namespace Racletty.Api.Services;
 
 public enum ProjectNotificationAudience
 {
@@ -31,7 +31,7 @@ public interface IProjectNotificationService
     Task<long[]> ParticipantUserIdsAsync(long projectId, CancellationToken cancellationToken = default);
 }
 
-public sealed class ProjectNotificationService(BlueprintDbContext db, TimeProvider timeProvider) : IProjectNotificationService
+public sealed class ProjectNotificationService(RaclettyDbContext db, TimeProvider timeProvider) : IProjectNotificationService
 {
     public async Task<long[]> ParticipantUserIdsAsync(long projectId, CancellationToken cancellationToken = default)
         => await ParticipantUserIdsAsync(projectId, ProjectNotificationAudience.AllParticipants, cancellationToken);

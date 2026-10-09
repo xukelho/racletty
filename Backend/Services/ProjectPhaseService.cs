@@ -1,9 +1,9 @@
-using Blueprint.Api.Data;
+using Racletty.Api.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Services;
+namespace Racletty.Api.Services;
 
-public sealed class ProjectPhaseService(BlueprintDbContext db)
+public sealed class ProjectPhaseService(RaclettyDbContext db)
 {
     public async Task ReconcileAsync(Project project, IReadOnlyList<string> phaseCodes, int? currentPhaseIndex, CancellationToken cancellationToken = default)
     {

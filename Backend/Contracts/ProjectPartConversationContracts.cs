@@ -1,4 +1,4 @@
-namespace Blueprint.Api.Contracts;
+namespace Racletty.Api.Contracts;
 
 public sealed record ProjectPartConversationResponse(long Id, Guid DocumentId, string TargetKey, string TargetKind,
     string TargetLabel, string Title, double AnchorX, double AnchorY, DateTimeOffset CreatedAt, int MessageCount);

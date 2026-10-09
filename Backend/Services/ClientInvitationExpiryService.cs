@@ -1,14 +1,14 @@
-using Blueprint.Api.Data;
+using Racletty.Api.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Services;
+namespace Racletty.Api.Services;
 
 public static class ClientInvitationExpiry
 {
     public static readonly TimeSpan Lifetime = TimeSpan.FromDays(3);
 
     public static async Task<int> DeleteExpiredAsync(
-        BlueprintDbContext db,
+        RaclettyDbContext db,
         TimeProvider timeProvider,
         CancellationToken cancellationToken)
     {
@@ -39,7 +39,7 @@ public sealed class ClientInvitationExpiryService(
         try
         {
             await using var scope = scopeFactory.CreateAsyncScope();
-            var db = scope.ServiceProvider.GetRequiredService<BlueprintDbContext>();
+            var db = scope.ServiceProvider.GetRequiredService<RaclettyDbContext>();
             await ClientInvitationExpiry.DeleteExpiredAsync(db, timeProvider, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

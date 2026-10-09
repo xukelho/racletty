@@ -1,13 +1,13 @@
 using System.Net;
 using System.Net.Http.Json;
-using Blueprint.Api.Data;
-using Blueprint.Api.Services;
-using Blueprint.Api.Storage;
+using Racletty.Api.Data;
+using Racletty.Api.Services;
+using Racletty.Api.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Npgsql;
 
-namespace Blueprint.Api.IntegrationTests;
+namespace Racletty.Api.IntegrationTests;
 
 public sealed partial class ProjectIntegrationTests
 {
@@ -140,7 +140,7 @@ public sealed partial class ProjectIntegrationTests
         await SetVisibilityAsync(s, document, true);
     }
 
-    private static FileService VisibilityFiles(BlueprintDbContext db, IProjectNotificationService notifications) =>
+    private static FileService VisibilityFiles(RaclettyDbContext db, IProjectNotificationService notifications) =>
         // Null external dependencies deliberately make any unexpected storage/quota operation fail.
         new(db, null!, Options.Create(new ObjectStorageOptions
         {

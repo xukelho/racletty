@@ -1,0 +1,1 @@
+2026-10-09 — Removed the inspected, label-identified stale local `racletty-db` and `racletty-objects` volumes after they prevented the new baseline from applying; they were prior local rebrand artifacts, not hosted or unrelated resources.

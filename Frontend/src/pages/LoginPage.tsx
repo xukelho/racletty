@@ -72,7 +72,7 @@ function LoginPage() {
         setMessage("We couldn't sign you in. Please try again.");
       }
     } catch {
-      setMessage("We couldn't reach blueprint. Please try again.");
+      setMessage("We couldn't reach racletty. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -101,13 +101,13 @@ function LoginPage() {
 
   return (
     <main className="login-page">
-      <section className="brand-panel" aria-label="About blueprint">
+      <section className="brand-panel" aria-label="About racletty">
         <div className="brand-panel__grid" aria-hidden="true" />
         <header className="brand">
           <span className="brand__mark" aria-hidden="true">
             <BrandLogoMark />
           </span>
-          <span className="brand__name">blueprint</span>
+          <span className="brand__name">racletty</span>
         </header>
 
         <div className="brand-copy">
@@ -141,7 +141,7 @@ function LoginPage() {
 
         <footer className="brand-panel__footer">
           <span>One source of truth for every project.</span>
-          <span>© 2026 blueprint</span>
+          <span>© 2026 racletty</span>
         </footer>
       </section>
 
@@ -150,13 +150,13 @@ function LoginPage() {
           <span className="brand__mark" aria-hidden="true">
             <BrandLogoMark />
           </span>
-          <span className="brand__name">blueprint</span>
+          <span className="brand__name">racletty</span>
         </div>
 
         <div className="login-card">
           <div className="login-card__heading">
             <p className="eyebrow">Welcome back</p>
-            <h2>Sign in to blueprint</h2>
+            <h2>Sign in to racletty</h2>
             <p>Continue to your projects and conversations.</p>
           </div>
 
@@ -258,7 +258,7 @@ function LoginPage() {
           )}
 
           <p className="support-copy">
-            New to blueprint? <button className="text-button" type="button">Contact your practice administrator</button>
+            New to racletty? <button className="text-button" type="button">Contact your practice administrator</button>
           </p>
         </div>
 

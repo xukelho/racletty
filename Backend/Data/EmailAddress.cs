@@ -1,6 +1,6 @@
 using System.Net.Mail;
 
-namespace Blueprint.Api.Data;
+namespace Racletty.Api.Data;
 
 public static class EmailAddress
 {

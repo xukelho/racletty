@@ -1,10 +1,10 @@
 using System.Security.Claims;
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Services;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class StorageEndpoints
 {
@@ -21,17 +21,17 @@ public static class StorageEndpoints
         return endpoints;
     }
 
-    private static async Task<IResult> GetCompanyStorage(ClaimsPrincipal principal, BlueprintDbContext db, IStorageQuotaService quotas, CancellationToken ct)
+    private static async Task<IResult> GetCompanyStorage(ClaimsPrincipal principal, RaclettyDbContext db, IStorageQuotaService quotas, CancellationToken ct)
     {
         var companyId = await OwnerCompanyId(principal, db, ct);
         if (companyId is null) return TypedResults.NotFound();
         return TypedResults.Ok(ToResponse(await quotas.GetUsageAsync(companyId.Value, ct)));
     }
 
-    private static async Task<IResult> GetSettings(BlueprintDbContext db, CancellationToken ct) =>
+    private static async Task<IResult> GetSettings(RaclettyDbContext db, CancellationToken ct) =>
         TypedResults.Ok(ToResponse(await db.StorageConfigurations.AsNoTracking().SingleAsync(item => item.Id == StorageConfiguration.SingletonId, ct)));
 
-    private static async Task<IResult> UpdateSettings(UpdateStorageSettingsRequest? request, ClaimsPrincipal principal, BlueprintDbContext db, IStorageQuotaService quotas, TimeProvider timeProvider, CancellationToken ct)
+    private static async Task<IResult> UpdateSettings(UpdateStorageSettingsRequest? request, ClaimsPrincipal principal, RaclettyDbContext db, IStorageQuotaService quotas, TimeProvider timeProvider, CancellationToken ct)
     {
         var validation = ValidateCapacity(request?.BaseLimitBytes, "baseLimitBytes");
         if (validation is not null) return validation;
@@ -50,7 +50,7 @@ public static class StorageEndpoints
         return TypedResults.Ok(ToResponse(settings));
     }
 
-    private static async Task<IResult> GetCompanyAllocation(long companyId, BlueprintDbContext db, IStorageQuotaService quotas, CancellationToken ct)
+    private static async Task<IResult> GetCompanyAllocation(long companyId, RaclettyDbContext db, IStorageQuotaService quotas, CancellationToken ct)
     {
         var allocation = await db.CompanyStorageAllocations.AsNoTracking().SingleOrDefaultAsync(item => item.CompanyId == companyId, ct);
         if (allocation is null) return TypedResults.NotFound();
@@ -58,7 +58,7 @@ public static class StorageEndpoints
     }
 
     private static async Task<IResult> UpdateCompanyAllocation(long companyId, UpdateCompanyStorageAllocationRequest? request, ClaimsPrincipal principal,
-        BlueprintDbContext db, IStorageQuotaService quotas, TimeProvider timeProvider, CancellationToken ct)
+        RaclettyDbContext db, IStorageQuotaService quotas, TimeProvider timeProvider, CancellationToken ct)
     {
         var validation = ValidateCapacity(request?.AdminExtraBytes, "adminExtraBytes");
         if (validation is not null) return validation;
@@ -83,7 +83,7 @@ public static class StorageEndpoints
             ? TypedResults.ValidationProblem(new Dictionary<string, string[]> { [field] = ["Capacity must be a non-negative multiple of 0.1 GB."] })
             : null;
 
-    private static async Task<long?> OwnerCompanyId(ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<long?> OwnerCompanyId(ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var userId = UserId(principal);
         return await db.CompanyEmployees.Where(item => item.Employee!.UserId == userId && item.CompanyRole == CompanyRoles.Owner && item.Company!.IsActive)

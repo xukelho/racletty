@@ -1,7 +1,7 @@
 using ACadSharp.IO;
-using Blueprint.Api.Contracts;
+using Racletty.Api.Contracts;
 
-namespace Blueprint.Api.Services;
+namespace Racletty.Api.Services;
 
 /// <summary>Converts DWG documents using ACadSharp's MIT-licensed reader and the same contract builder as DXF.</summary>
 public sealed class DwgDrawingSourceParser : IDrawingSourceParser

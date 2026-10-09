@@ -35,7 +35,7 @@ const invitations = [
 ];
 
 function renderRoute(path = "/clients") {
-  sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["employee", "company owner"]));
+  sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["employee", "company owner"]));
   return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>);
 }
 

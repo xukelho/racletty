@@ -1,4 +1,4 @@
-# Blueprint API
+# Racletty API
 
 The API is an ASP.NET Core application targeting .NET 10.
 
@@ -7,8 +7,8 @@ The API is an ASP.NET Core application targeting .NET 10.
 Start PostgreSQL and configure the connection string:
 
 ```powershell
-$env:ConnectionStrings__DefaultConnection = "Host=localhost;Port=5837;Database=blueprint;Username=blueprint;Password=blueprint_dev_password"
-dotnet run --project Backend/Blueprint.Api.csproj
+$env:ConnectionStrings__DefaultConnection = "Host=localhost;Port=5837;Database=racletty;Username=racletty;Password=racletty_dev_password"
+dotnet run --project Backend/Racletty.Api.csproj
 ```
 
 On startup, the API applies pending Entity Framework Core migrations. When the
@@ -87,6 +87,6 @@ use the development instance on port `5837`; override the administrative
 connection when needed:
 
 ```powershell
-$env:BLUEPRINT_TEST_ADMIN_CONNECTION = "Host=localhost;Port=5837;Database=postgres;Username=blueprint;Password=blueprint_dev_password"
-dotnet test Backend.Tests/Blueprint.Api.IntegrationTests.csproj
+$env:RACLETTY_TEST_ADMIN_CONNECTION = "Host=localhost;Port=5837;Database=postgres;Username=racletty;Password=racletty_dev_password"
+dotnet test Backend.Tests/Racletty.Api.IntegrationTests.csproj
 ```

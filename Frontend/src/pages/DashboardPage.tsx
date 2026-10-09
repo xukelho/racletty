@@ -10,7 +10,7 @@ import { useNotificationSummary } from "../hooks/useNotificationSummary";
 import { useProfile } from "../profile/ProfileContext";
 
 type DashboardLayout = "attention-first" | "by-project";
-const DASHBOARD_LAYOUT_KEY = "blueprint.dashboard.notification-layout";
+const DASHBOARD_LAYOUT_KEY = "racletty.dashboard.notification-layout";
 
 const initialLayout = (): DashboardLayout => sessionStorage.getItem(DASHBOARD_LAYOUT_KEY) === "by-project" ? "by-project" : "attention-first";
 

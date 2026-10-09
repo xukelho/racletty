@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Development image for the Blueprint Vite frontend. Dependencies and
+# Development image for the Racletty Vite frontend. Dependencies and
 # Playwright browsers are installed in the image, never on the host machine.
 FROM node:22-bookworm-slim
 

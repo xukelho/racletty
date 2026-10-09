@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Blueprint.Api.Data;
+namespace Racletty.Api.Data;
 
-public sealed class BlueprintDbContext(DbContextOptions<BlueprintDbContext> options)
+public sealed class RaclettyDbContext(DbContextOptions<RaclettyDbContext> options)
     : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
@@ -190,6 +190,13 @@ public sealed class BlueprintDbContext(DbContextOptions<BlueprintDbContext> opti
         configuration.Property(candidate => candidate.BaseLimitBytes).HasColumnName("base_limit_bytes").IsRequired();
         configuration.Property(candidate => candidate.UpdatedAt).HasColumnName("updated_at").HasColumnType("timestamp with time zone").IsRequired();
         configuration.Property(candidate => candidate.UpdatedBy).HasColumnName("updated_by").IsRequired();
+        configuration.HasData(new StorageConfiguration
+        {
+            Id = StorageConfiguration.SingletonId,
+            BaseLimitBytes = StorageConfiguration.DefaultBaseLimitBytes,
+            UpdatedAt = DateTimeOffset.UnixEpoch,
+            UpdatedBy = AuditActors.System
+        });
 
         var allocation = modelBuilder.Entity<CompanyStorageAllocation>();
         allocation.ToTable("company_storage_allocations", table =>

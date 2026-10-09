@@ -91,7 +91,7 @@ const themeOptions: Array<{
   {
     value: "light",
     title: "Claro",
-    description: "A aparência atual do blueprint, luminosa e limpa.",
+    description: "A aparência atual do racletty, luminosa e limpa.",
     icon: Sun,
   },
   {
@@ -312,7 +312,7 @@ export default function UserPage({
           <div className="mock-section-title">
             <div>
               <h2>{section}</h2>
-              <p>Informação associada à tua conta blueprint.</p>
+              <p>Informação associada à tua conta racletty.</p>
             </div>
           </div>
 
@@ -429,7 +429,7 @@ export default function UserPage({
               </div>
             ) : section === "Aparência" ? (
               <fieldset className="theme-picker">
-                <legend>Escolhe o tema do blueprint</legend>
+                <legend>Escolhe o tema do racletty</legend>
                 <p className="theme-picker__intro">
                   A preferência fica associada à tua conta e é aplicada em todos os dispositivos.
                 </p>

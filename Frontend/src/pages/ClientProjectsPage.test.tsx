@@ -14,7 +14,7 @@ const projects = [
 afterEach(() => { cleanup(); vi.restoreAllMocks(); sessionStorage.clear(); });
 
 it("groups client projects by company and searches by company name", async () => {
-  sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["client"]));
+  sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["client"]));
   vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => String(input) === "/api/profile" ? jsonResponse(profile) : jsonResponse(projects));
   const user = userEvent.setup();
   render(<MemoryRouter initialEntries={["/projects"]}><App /></MemoryRouter>);

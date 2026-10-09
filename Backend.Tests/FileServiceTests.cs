@@ -1,12 +1,12 @@
-using Blueprint.Api.Data;
-using Blueprint.Api.Services;
-using Blueprint.Api.Storage;
+using Racletty.Api.Data;
+using Racletty.Api.Services;
+using Racletty.Api.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
-namespace Blueprint.Api.IntegrationTests;
+namespace Racletty.Api.IntegrationTests;
 
 public sealed class FileServiceTests
 {
@@ -153,11 +153,11 @@ public sealed class FileServiceTests
         Assert.Equal(StoredObjectStatus.DeletionPending, stored!.Status);
     }
 
-    private static BlueprintDbContext CreateDb() => new(new DbContextOptionsBuilder<BlueprintDbContext>()
+    private static RaclettyDbContext CreateDb() => new(new DbContextOptionsBuilder<RaclettyDbContext>()
         .UseInMemoryDatabase(Guid.NewGuid().ToString())
         .ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning)).Options);
 
-    private static (Project Project, ProjectPhase First, ProjectPhase Second) SeedProject(BlueprintDbContext db)
+    private static (Project Project, ProjectPhase First, ProjectPhase Second) SeedProject(RaclettyDbContext db)
     {
         var now = DateTimeOffset.UtcNow;
         var project = new Project { Id = 10, CompanyId = 1, Title = "P", Code = "P", Address = "", CreatedAt = now, UpdatedAt = now, CreatedBy = 1, UpdatedBy = 1 };
@@ -169,7 +169,7 @@ public sealed class FileServiceTests
         return (project, first, second);
     }
 
-    private static FileService CreateService(BlueprintDbContext db, FakeObjectStore store, TimeProvider clock) =>
+    private static FileService CreateService(RaclettyDbContext db, FakeObjectStore store, TimeProvider clock) =>
         new(db, store, Options.Create(new ObjectStorageOptions
         {
             Endpoint = "http://storage.test", Region = "test", Bucket = "private", AccessKey = "a", SecretKey = "s",

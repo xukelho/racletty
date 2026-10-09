@@ -14,46 +14,46 @@ restart:
 	$(MAKE) down
 	$(MAKE) up
 
-# Database (postgresdb)
+# Database (racletty-db)
 startdb updb:
-	docker compose up postgresdb
+	docker compose up racletty-db
 
 stopdb:
-	docker compose stop postgresdb
+	docker compose stop racletty-db
 
 downdb:
-	docker compose stop postgresdb
-	docker compose rm -f postgresdb
+	docker compose stop racletty-db
+	docker compose rm -f racletty-db
 
 restartdb:
 	$(MAKE) downdb
 	$(MAKE) updb
 
-# API (blueprint-api)
+# API (racletty-api)
 startapi upapi:
-	docker compose up --build blueprint-api
+	docker compose up --build racletty-api
 
 stopapi:
-	docker compose stop blueprint-api
+	docker compose stop racletty-api
 
 downapi:
-	docker compose stop blueprint-api
-	docker compose rm -f blueprint-api
+	docker compose stop racletty-api
+	docker compose rm -f racletty-api
 
 restartapi:
 	$(MAKE) downapi
 	$(MAKE) upapi
 
-# Frontend (blueprint-frontend)
+# Frontend (racletty-frontend)
 startfrontend upfrontend:
-	docker compose up blueprint-frontend
+	docker compose up racletty-frontend
 
 stopfrontend:
-	docker compose stop blueprint-frontend
+	docker compose stop racletty-frontend
 
 downfrontend:
-	docker compose stop blueprint-frontend
-	docker compose rm -f blueprint-frontend
+	docker compose stop racletty-frontend
+	docker compose rm -f racletty-frontend
 
 restartfrontend:
 	$(MAKE) downfrontend

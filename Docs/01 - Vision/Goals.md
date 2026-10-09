@@ -9,7 +9,7 @@ For now, here's the complete contents for **`Docs/01 - Vision/Goals.md`**, ready
 
 ## Purpose
 
-This document defines the primary goals of Blueprint.
+This document defines the primary goals of Racletty.
 
 The goals described here represent the outcomes the product is expected to achieve for its users and should guide product decisions throughout the lifetime of the project.
 
@@ -45,7 +45,7 @@ This document should be read by:
 
 Provide a single platform where architects and clients can collaborate throughout the lifecycle of an architectural project.
 
-Blueprint should become the primary location for project discussions, decisions, revisions and approvals.
+Racletty should become the primary location for project discussions, decisions, revisions and approvals.
 
 ---
 
@@ -111,7 +111,7 @@ The architecture should allow new capabilities to be introduced without compromi
 
 # Product Goals
 
-Blueprint should:
+Racletty should:
 
 - provide a clear history of every project revision
 - organise communication around project revisions rather than disconnected conversations
@@ -139,7 +139,7 @@ Engineering goals include:
 
 # Long-Term Goals
 
-Over time, Blueprint should evolve into a comprehensive collaboration platform for the architecture industry.
+Over time, Racletty should evolve into a comprehensive collaboration platform for the architecture industry.
 
 Future capabilities may include:
 
@@ -156,7 +156,7 @@ These capabilities should enhance the core collaboration experience without chan
 
 # Success Criteria
 
-Blueprint will be considered successful when:
+Racletty will be considered successful when:
 
 - architects rely on the platform as the primary source of project communication
 - clients can easily understand project progress and revisions

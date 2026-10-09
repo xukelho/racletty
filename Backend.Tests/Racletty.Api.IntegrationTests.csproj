@@ -18,6 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Backend\Blueprint.Api.csproj" />
+    <ProjectReference Include="..\Backend\Racletty.Api.csproj" />
   </ItemGroup>
 </Project>

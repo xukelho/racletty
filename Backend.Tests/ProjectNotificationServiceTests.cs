@@ -1,8 +1,8 @@
-using Blueprint.Api.Data;
-using Blueprint.Api.Services;
+using Racletty.Api.Data;
+using Racletty.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.IntegrationTests;
+namespace Racletty.Api.IntegrationTests;
 
 public sealed class ProjectNotificationServiceTests
 {
@@ -12,7 +12,7 @@ public sealed class ProjectNotificationServiceTests
     [InlineData(ProjectNotificationAudience.ClientsOnly)]
     public async Task FanoutUsesOnlyActiveExplicitParticipantsAndAdditionalRemovedUsers(ProjectNotificationAudience audience)
     {
-        await using var db = new BlueprintDbContext(new DbContextOptionsBuilder<BlueprintDbContext>()
+        await using var db = new RaclettyDbContext(new DbContextOptionsBuilder<RaclettyDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         var now = DateTimeOffset.Parse("2026-09-11T10:00:00Z");
         var actor = User(1, "Actor");

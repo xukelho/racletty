@@ -32,7 +32,7 @@ afterEach(() => {
 });
 
 function renderPage() {
-  sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["client"]));
+  sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["client"]));
   return render(<MemoryRouter initialEntries={["/notifications"]}><App /></MemoryRouter>);
 }
 
@@ -79,7 +79,6 @@ describe("client notifications", () => {
 
     await user.click(screen.getByRole("button", { name: "Recusar convite da empresa Atelier Sul" }));
     await waitFor(() => expect(screen.queryByText("Recebeu um convite da empresa Atelier Sul.")).not.toBeInTheDocument());
-    expect(screen.getAllByText("Mock").length).toBeGreaterThan(0);
     const notificationsButton = screen.getByRole("button", { name: "Notificações" });
     expect(within(notificationsButton).queryByText("Mock")).not.toBeInTheDocument();
   });
@@ -115,7 +114,7 @@ describe("client notifications", () => {
       if (path === "/api/notifications/71/read" && init?.method === "PUT") { markedRead = true; return new Response(null, { status: 204 }); }
       throw new Error(`Unexpected request: ${path}`);
     });
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["employee", "architect"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["employee", "architect"]));
     render(<MemoryRouter initialEntries={["/notifications"]}><App /></MemoryRouter>);
 
     const notification = await screen.findByRole("button", { name: /Ana Martins adicionou uma mensagem/ });

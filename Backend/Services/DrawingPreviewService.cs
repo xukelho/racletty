@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Storage;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Storage;
 
-namespace Blueprint.Api.Services;
+namespace Racletty.Api.Services;
 
 public sealed class DrawingPreviewOptions
 {

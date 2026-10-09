@@ -1,10 +1,10 @@
 using System.Security.Claims;
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Services;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class ClientInvitationEndpoints
 {
@@ -23,7 +23,7 @@ public static class ClientInvitationEndpoints
 
     private static async Task<IResult> ListReceived(
         ClaimsPrincipal principal,
-        BlueprintDbContext db,
+        RaclettyDbContext db,
         TimeProvider timeProvider,
         CancellationToken cancellationToken)
     {
@@ -47,7 +47,7 @@ public static class ClientInvitationEndpoints
     private static async Task<IResult> Accept(
         long id,
         ClaimsPrincipal principal,
-        BlueprintDbContext db,
+        RaclettyDbContext db,
         TimeProvider timeProvider,
         CancellationToken cancellationToken)
     {
@@ -89,7 +89,7 @@ public static class ClientInvitationEndpoints
     private static async Task<IResult> Reject(
         long id,
         ClaimsPrincipal principal,
-        BlueprintDbContext db,
+        RaclettyDbContext db,
         TimeProvider timeProvider,
         CancellationToken cancellationToken)
     {
@@ -105,7 +105,7 @@ public static class ClientInvitationEndpoints
 
     private static async Task<Client?> CurrentClient(
         ClaimsPrincipal principal,
-        BlueprintDbContext db,
+        RaclettyDbContext db,
         CancellationToken cancellationToken)
     {
         if (!principal.IsInRole("client") ||
@@ -122,7 +122,7 @@ public static class ClientInvitationEndpoints
 
     private static async Task<IResult> List(
         ClaimsPrincipal principal,
-        BlueprintDbContext db,
+        RaclettyDbContext db,
         TimeProvider timeProvider,
         CancellationToken cancellationToken)
     {
@@ -148,7 +148,7 @@ public static class ClientInvitationEndpoints
     private static async Task<IResult> Create(
         CreateClientInvitationRequest? request,
         ClaimsPrincipal principal,
-        BlueprintDbContext db,
+        RaclettyDbContext db,
         TimeProvider timeProvider,
         CancellationToken cancellationToken)
     {

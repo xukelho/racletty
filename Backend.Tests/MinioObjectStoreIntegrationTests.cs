@@ -2,23 +2,23 @@ using System.Net;
 using System.Net.Http.Headers;
 using Amazon.Runtime;
 using Amazon.S3;
-using Blueprint.Api.Storage;
+using Racletty.Api.Storage;
 using Microsoft.Extensions.Options;
 
-namespace Blueprint.Api.IntegrationTests;
+namespace Racletty.Api.IntegrationTests;
 
 public sealed class MinioObjectStoreIntegrationTests
 {
     [Fact]
     public async Task PresignedUploadMetadataDownloadAndDeleteWorkAgainstMinio()
     {
-        var endpoint = Environment.GetEnvironmentVariable("BLUEPRINT_TEST_S3_ENDPOINT");
+        var endpoint = Environment.GetEnvironmentVariable("RACLETTY_TEST_S3_ENDPOINT");
         if (string.IsNullOrWhiteSpace(endpoint)) return;
 
         var options = new ObjectStorageOptions
         {
-            Endpoint = endpoint, Region = "us-east-1", Bucket = "blueprint-private",
-            AccessKey = "blueprint_dev", SecretKey = "blueprint_dev_password", ForcePathStyle = true
+            Endpoint = endpoint, Region = "us-east-1", Bucket = "racletty-private",
+            AccessKey = "racletty_dev", SecretKey = "racletty_dev_password", ForcePathStyle = true
         };
         using var client = new AmazonS3Client(new BasicAWSCredentials(options.AccessKey, options.SecretKey), new AmazonS3Config
         {
@@ -26,7 +26,7 @@ public sealed class MinioObjectStoreIntegrationTests
         });
         var store = new S3ObjectStore(client, Options.Create(options), TimeProvider.System);
         var key = $"integration/{Guid.NewGuid():N}";
-        var bytes = "blueprint-minio-integration"u8.ToArray();
+        var bytes = "racletty-minio-integration"u8.ToArray();
         using var http = new HttpClient();
 
         var upload = await store.CreateUploadGrantAsync(key, "text/plain", bytes.Length, TimeSpan.FromMinutes(2));

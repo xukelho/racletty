@@ -380,7 +380,7 @@ export default function AdministrationPage() {
   return (
     <PortalShell wide>
       <header className="admin-header">
-        <div><p className="admin-eyebrow">Gestão do portal</p><h1>Administração</h1><p>Gere utilizadores, colaboradores, clientes e empresas do blueprint.</p></div>
+        <div><p className="admin-eyebrow">Gestão do portal</p><h1>Administração</h1><p>Gere utilizadores, colaboradores, clientes e empresas do racletty.</p></div>
       </header>
       <section className="admin-crud" aria-label="Gestão de entidades">
         <div className="admin-tabs" role="tablist" aria-label="Entidades">

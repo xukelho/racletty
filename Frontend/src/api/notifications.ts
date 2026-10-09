@@ -24,7 +24,7 @@ export type ProjectNotification = {
 export type NotificationPage = { items: ProjectNotification[]; hasMore: boolean };
 export type ProjectUnreadCount = { projectId: number; unreadCount: number };
 export type NotificationSummary = { unreadCount: number; pendingInvitationCount: number; total: number; projectUnreadCounts: ProjectUnreadCount[] };
-export const NOTIFICATIONS_CHANGED_EVENT = "blueprint:notifications-changed";
+export const NOTIFICATIONS_CHANGED_EVENT = "racletty:notifications-changed";
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);

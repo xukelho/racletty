@@ -1,10 +1,10 @@
 using System.Security.Claims;
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Services;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class ProjectPartConversationEndpoints
 {
@@ -19,7 +19,7 @@ public static class ProjectPartConversationEndpoints
         return endpoints;
     }
 
-    private static async Task<IResult> List(long projectId, Guid? documentId, ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> List(long projectId, Guid? documentId, ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var access = await ProjectDocumentAccessService.FindAccessAsync(projectId, principal, db, ct);
         if (access is null) return TypedResults.NotFound();
@@ -31,7 +31,7 @@ public static class ProjectPartConversationEndpoints
         return TypedResults.Ok(items);
     }
 
-    private static async Task<IResult> Create(long projectId, CreateProjectPartConversationRequest? request, ClaimsPrincipal principal, BlueprintDbContext db, IProjectNotificationService notifications, CancellationToken ct)
+    private static async Task<IResult> Create(long projectId, CreateProjectPartConversationRequest? request, ClaimsPrincipal principal, RaclettyDbContext db, IProjectNotificationService notifications, CancellationToken ct)
     {
         var access = await ProjectDocumentAccessService.FindAccessAsync(projectId, principal, db, ct);
         if (access is null) return TypedResults.NotFound();
@@ -69,7 +69,7 @@ public static class ProjectPartConversationEndpoints
         return TypedResults.Created($"/api/projects/{projectId}/part-conversations/{conversation.Id}", ToResponse(conversation, 0));
     }
 
-    private static async Task<IResult> ListMessages(long projectId, long conversationId, ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> ListMessages(long projectId, long conversationId, ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var access = await ProjectDocumentAccessService.FindAccessAsync(projectId, principal, db, ct);
         if (access is null || !await ReadableConversations(projectId, access, db).AnyAsync(item => item.Id == conversationId, ct))
@@ -80,7 +80,7 @@ public static class ProjectPartConversationEndpoints
         return TypedResults.Ok(messages);
     }
 
-    private static async Task<IResult> CreateMessage(long projectId, long conversationId, CreateProjectPartConversationMessageRequest? request, ClaimsPrincipal principal, BlueprintDbContext db, IProjectNotificationService notifications, CancellationToken ct)
+    private static async Task<IResult> CreateMessage(long projectId, long conversationId, CreateProjectPartConversationMessageRequest? request, ClaimsPrincipal principal, RaclettyDbContext db, IProjectNotificationService notifications, CancellationToken ct)
     {
         var access = await ProjectDocumentAccessService.FindAccessAsync(projectId, principal, db, ct);
         if (access is null) return TypedResults.NotFound();
@@ -115,7 +115,7 @@ public static class ProjectPartConversationEndpoints
         new(item.Id, item.DocumentId, item.TargetKey, item.TargetKind, item.TargetLabel, item.Title, item.AnchorX, item.AnchorY, item.CreatedAt, count);
     private static ProjectPartConversationMessageResponse ToMessageResponse(ProjectPartConversationMessage item, long userId) =>
         new(item.Id, item.AuthorDisplayName, item.Body, item.CreatedAt, item.AuthorUserId == userId);
-    private static IQueryable<ProjectPartConversation> ReadableConversations(long projectId, ProjectFileAccess access, BlueprintDbContext db) =>
+    private static IQueryable<ProjectPartConversation> ReadableConversations(long projectId, ProjectFileAccess access, RaclettyDbContext db) =>
         db.ProjectPartConversations.AsNoTracking().Where(item => item.ProjectId == projectId &&
             item.Document!.ProjectId == projectId && !item.Document.IsDeleted &&
             (access.IsProfessional || item.Document.IsVisible && item.Document.StoredObject!.Status == StoredObjectStatus.Available));
@@ -123,7 +123,7 @@ public static class ProjectPartConversationEndpoints
     private static ProjectNotificationAudience AudienceFor(ProjectDocument document) =>
         document.IsVisible ? ProjectNotificationAudience.AllParticipants : ProjectNotificationAudience.EmployeesOnly;
 
-    private static async Task<string?> CurrentDisplayName(long userId, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<string?> CurrentDisplayName(long userId, RaclettyDbContext db, CancellationToken ct)
     {
         var employee = await db.Employees.AsNoTracking().Where(item => item.UserId == userId && item.User!.IsActive).Select(item => item.DisplayName).SingleOrDefaultAsync(ct);
         return employee ?? await db.Clients.AsNoTracking().Where(item => item.UserId == userId && item.User!.IsActive).Select(item => item.DisplayName).SingleOrDefaultAsync(ct);

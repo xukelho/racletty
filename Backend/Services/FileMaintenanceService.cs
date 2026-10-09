@@ -1,10 +1,10 @@
-using Blueprint.Api.Data;
-using Blueprint.Api.Storage;
+using Racletty.Api.Data;
+using Racletty.Api.Storage;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Services;
+namespace Racletty.Api.Services;
 
-public sealed class FileMaintenanceProcessor(BlueprintDbContext db, IObjectStore objectStore, TimeProvider timeProvider, IStorageQuotaService quotas, ILogger<FileMaintenanceProcessor> logger)
+public sealed class FileMaintenanceProcessor(RaclettyDbContext db, IObjectStore objectStore, TimeProvider timeProvider, IStorageQuotaService quotas, ILogger<FileMaintenanceProcessor> logger)
 {
     public async Task<int> ProcessBatchAsync(int batchSize = 50, CancellationToken cancellationToken = default)
     {

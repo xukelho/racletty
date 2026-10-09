@@ -1,4 +1,4 @@
-namespace Blueprint.Api.Authentication;
+namespace Racletty.Api.Authentication;
 
 public sealed record AuthenticatedUser(
     long Id,

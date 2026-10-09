@@ -1,10 +1,10 @@
 using System.Security.Claims;
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Validation;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Validation;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class CompanyEndpoints
 {
@@ -35,7 +35,7 @@ public static class CompanyEndpoints
 
     private static async Task<IResult> GetCurrentCompany(
         ClaimsPrincipal principal,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var result = await FindCurrentCompany(principal, dbContext, cancellationToken);
@@ -45,7 +45,7 @@ public static class CompanyEndpoints
     private static async Task<IResult> UpdateCurrentCompany(
         UpdateCurrentCompanyRequest? request,
         ClaimsPrincipal principal,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = Validate(request);
@@ -79,7 +79,7 @@ public static class CompanyEndpoints
 
     private static async Task<(Company? Company, IResult? Error)> FindCurrentCompany(
         ClaimsPrincipal principal,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         if (!principal.IsInRole("employee"))

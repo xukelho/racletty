@@ -1,14 +1,14 @@
 using System.Security.Claims;
-using Blueprint.Api.Data;
+using Racletty.Api.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Services;
+namespace Racletty.Api.Services;
 
 public sealed record ProjectFileAccess(long UserId, bool IsProfessional, bool IsArchived);
 
 public static class ProjectDocumentAccessService
 {
-    public static async Task<ProjectFileAccess?> FindAccessAsync(long projectId, ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    public static async Task<ProjectFileAccess?> FindAccessAsync(long projectId, ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         if (!long.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)) return null;
 
@@ -30,7 +30,7 @@ public static class ProjectDocumentAccessService
 
     // Call inside the mutation transaction. Reload after the row lock so tracked state
     // from an earlier authorization/read cannot determine the transition or audience.
-    public static async Task<ProjectDocument?> LockAsync(BlueprintDbContext db, Guid documentId, CancellationToken ct)
+    public static async Task<ProjectDocument?> LockAsync(RaclettyDbContext db, Guid documentId, CancellationToken ct)
     {
         if (db.Database.IsRelational())
         {

@@ -1,6 +1,6 @@
 export type ApplicationEnvironment = "development" | "testing" | "production";
 
-export const APPLICATION_ENVIRONMENT_KEY = "blueprint.application.environment";
+export const APPLICATION_ENVIRONMENT_KEY = "racletty.application.environment";
 
 export function normalizeApplicationEnvironment(value: unknown): ApplicationEnvironment {
   return value === "development" || value === "testing" || value === "production"

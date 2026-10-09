@@ -1,11 +1,11 @@
-using Blueprint.Api.Authentication;
-using Blueprint.Api.Configuration;
-using Blueprint.Api.Contracts;
+using Racletty.Api.Authentication;
+using Racletty.Api.Configuration;
+using Racletty.Api.Contracts;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class AuthenticationEndpoints
 {

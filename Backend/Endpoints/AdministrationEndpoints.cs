@@ -1,10 +1,10 @@
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Validation;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Validation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class AdministrationEndpoints
 {
@@ -154,7 +154,7 @@ public static class AdministrationEndpoints
     }
 
     private static async Task<IResult> GetRoles(
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var roles = await dbContext.Roles
@@ -166,7 +166,7 @@ public static class AdministrationEndpoints
     }
 
     private static async Task<IResult> GetUsers(
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var users = await UserQuery(dbContext)
@@ -177,7 +177,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> GetUser(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var user = await UserQuery(dbContext)
@@ -187,7 +187,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> CreateUser(
         CreateUserRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = ValidateCredentials(request?.Username, request?.Password, true);
@@ -215,7 +215,7 @@ public static class AdministrationEndpoints
     private static async Task<IResult> UpdateUser(
         long id,
         UpdateUserRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = ValidateCredentials(request?.Username, request?.Password, false);
@@ -280,7 +280,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> DeleteUser(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var user = await dbContext.Users.FindAsync([id], cancellationToken);
@@ -295,7 +295,7 @@ public static class AdministrationEndpoints
     }
 
     private static async Task<IResult> GetEmployees(
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var employees = await dbContext.Employees.AsNoTracking()
@@ -307,7 +307,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> GetEmployee(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var employee = await dbContext.Employees.AsNoTracking()
@@ -319,7 +319,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> CreateEmployee(
         CreateEmployeeRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = ValidateCredentials(request?.Username, request?.Password, true);
@@ -383,7 +383,7 @@ public static class AdministrationEndpoints
     private static async Task<IResult> UpdateEmployee(
         long id,
         UpdateEmployeeRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = new Dictionary<string, string[]>();
@@ -411,7 +411,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> DeleteEmployee(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var employee = await dbContext.Employees
@@ -428,7 +428,7 @@ public static class AdministrationEndpoints
     }
 
     private static async Task<IResult> GetClients(
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var clients = await dbContext.Clients.AsNoTracking()
@@ -441,7 +441,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> GetClient(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var client = await dbContext.Clients.AsNoTracking()
@@ -454,7 +454,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> CreateClient(
         CreateClientRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = ValidateCredentials(request?.Username, request?.Password, true);
@@ -530,7 +530,7 @@ public static class AdministrationEndpoints
     private static async Task<IResult> UpdateClient(
         long id,
         UpdateClientRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = new Dictionary<string, string[]>();
@@ -606,7 +606,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> DeleteClient(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var client = await dbContext.Clients
@@ -623,7 +623,7 @@ public static class AdministrationEndpoints
     }
 
     private static async Task<IResult> GetCompanies(
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken,
         bool includeInactive = false)
     {
@@ -642,7 +642,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> GetCompany(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var company = await dbContext.Companies.AsNoTracking()
@@ -654,7 +654,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> CreateCompany(
         CreateCompanyRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = ValidateCompany(request);
@@ -698,7 +698,7 @@ public static class AdministrationEndpoints
     private static async Task<IResult> UpdateCompany(
         long id,
         UpdateCompanyRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = ValidateCompany(request);
@@ -734,7 +734,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> DeleteCompany(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var company = await dbContext.Companies
@@ -755,7 +755,7 @@ public static class AdministrationEndpoints
         return TypedResults.NoContent();
     }
 
-    private static IQueryable<User> UserQuery(BlueprintDbContext dbContext) =>
+    private static IQueryable<User> UserQuery(RaclettyDbContext dbContext) =>
         dbContext.Users
             .AsNoTracking()
             .Include(candidate => candidate.UserRoles)
@@ -763,7 +763,7 @@ public static class AdministrationEndpoints
 
     private static async Task LoadUserRoles(
         User user,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         await dbContext.Entry(user)
@@ -793,7 +793,7 @@ public static class AdministrationEndpoints
     private static async Task<bool> UsernameExists(
         string username,
         long? excludedUserId,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken) =>
         await dbContext.Users.AnyAsync(
             candidate => candidate.Username == username &&
@@ -818,7 +818,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult?> RequireActiveCompany(
         long companyId,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var company = await dbContext.Companies.AsNoTracking()
@@ -1044,7 +1044,7 @@ public static class AdministrationEndpoints
     private static async Task RemoveMatchingInvitations(
         IReadOnlyCollection<long> companyIds,
         string email,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         if (companyIds.Count == 0)

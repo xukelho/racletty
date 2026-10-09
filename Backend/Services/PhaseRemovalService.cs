@@ -1,7 +1,7 @@
-using Blueprint.Api.Data;
+using Racletty.Api.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Services;
+namespace Racletty.Api.Services;
 
 public enum PhaseRemovalMode
 {
@@ -12,7 +12,7 @@ public enum PhaseRemovalMode
 
 public sealed record PhaseRemovalCommand(long ProjectId, long PhaseId, PhaseRemovalMode Mode, long? TargetPhaseId, long ActorId);
 
-public sealed class PhaseRemovalService(BlueprintDbContext db, IFileService fileService, TimeProvider timeProvider, IProjectNotificationService notifications)
+public sealed class PhaseRemovalService(RaclettyDbContext db, IFileService fileService, TimeProvider timeProvider, IProjectNotificationService notifications)
 {
     public async Task RemoveAsync(PhaseRemovalCommand command, CancellationToken cancellationToken = default)
     {

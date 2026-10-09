@@ -2,10 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using Blueprint.Api.Data;
+using Racletty.Api.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.IntegrationTests;
+namespace Racletty.Api.IntegrationTests;
 
 public sealed partial class ProjectIntegrationTests
 {
@@ -411,6 +411,6 @@ public sealed partial class ProjectIntegrationTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(value, (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("isVisible").GetBoolean());
     }
-    private BlueprintDbContext VisibilityDb() => new(new DbContextOptionsBuilder<BlueprintDbContext>().UseNpgsql(fixture.ConnectionString).Options);
+    private RaclettyDbContext VisibilityDb() => new(new DbContextOptionsBuilder<RaclettyDbContext>().UseNpgsql(fixture.ConnectionString).Options);
 }
 

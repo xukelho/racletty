@@ -1,8 +1,8 @@
 using System.Text.Json;
-using Blueprint.Api.Data;
+using Racletty.Api.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Services;
+namespace Racletty.Api.Services;
 
 public sealed record ProjectStorageUsage(long ProjectId, string Title, string Code, bool IsArchived, long UsedBytes, long ReservedBytes)
 {
@@ -33,7 +33,7 @@ public interface IStorageQuotaService
     Task ResetWarningAsync(long companyId, CancellationToken cancellationToken = default);
 }
 
-public sealed class StorageQuotaService(BlueprintDbContext db, TimeProvider timeProvider) : IStorageQuotaService
+public sealed class StorageQuotaService(RaclettyDbContext db, TimeProvider timeProvider) : IStorageQuotaService
 {
     public async Task<(long CompanyId, long CurrentChargeBytes, long LimitBytes)> LockCompanyForProjectAsync(long projectId, CancellationToken cancellationToken = default)
     {

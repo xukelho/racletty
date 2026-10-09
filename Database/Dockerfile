@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM postgres:17.5-alpine
 
-LABEL org.opencontainers.image.title="blueprint-database"
+LABEL org.opencontainers.image.title="racletty-database"
 
 # Keep the project database on its explicitly assigned internal port.
 EXPOSE 7584

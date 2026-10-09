@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Data;
+namespace Racletty.Api.Data;
 
 public static class DatabaseInitializer
 {
@@ -13,7 +13,7 @@ public static class DatabaseInitializer
         CancellationToken cancellationToken = default)
     {
         await using var scope = services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<BlueprintDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<RaclettyDbContext>();
 
         await dbContext.Database.MigrateAsync(cancellationToken);
 

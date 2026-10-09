@@ -1,11 +1,11 @@
 using System.Security.Claims;
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Validation;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Validation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class CompanyMemberEndpoints
 {
@@ -19,7 +19,7 @@ public static class CompanyMemberEndpoints
         return endpoints;
     }
 
-    private static async Task<IResult> List(ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> List(ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var companyId = await OwnerCompanyId(principal, db, ct); if (companyId is null) return TypedResults.Forbid();
         var values = await db.CompanyEmployees.AsNoTracking().Where(x => x.CompanyId == companyId && x.Employee!.User!.IsActive)
@@ -27,7 +27,7 @@ public static class CompanyMemberEndpoints
         return TypedResults.Ok(values);
     }
 
-    private static async Task<IResult> Create(CreateCompanyMemberRequest? request, ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> Create(CreateCompanyMemberRequest? request, ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var companyId = await OwnerCompanyId(principal, db, ct); if (companyId is null) return TypedResults.Forbid();
         var errors = Validate(request?.Username, request?.Password, request?.DisplayName, request?.FullName, request?.CompanyRole);
@@ -45,7 +45,7 @@ public static class CompanyMemberEndpoints
         return TypedResults.Created($"/api/company/members/{employee.Id}", ToResponse(membership));
     }
 
-    private static async Task<IResult> Update(long employeeId, UpdateCompanyMemberRequest? request, ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> Update(long employeeId, UpdateCompanyMemberRequest? request, ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var companyId = await OwnerCompanyId(principal, db, ct); if (companyId is null) return TypedResults.Forbid();
         var errors = Validate(null, null, null, null, request?.CompanyRole); if (errors.Count > 0) return TypedResults.ValidationProblem(errors);
@@ -62,7 +62,7 @@ public static class CompanyMemberEndpoints
         membership.CompanyRole = role; membership.IsArchitect = request.IsArchitect; await db.SaveChangesAsync(ct); return TypedResults.Ok(ToResponse(membership));
     }
 
-    private static async Task<IResult> Delete(long employeeId, ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> Delete(long employeeId, ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var companyId = await OwnerCompanyId(principal, db, ct); if (companyId is null) return TypedResults.Forbid();
         var membership = await db.CompanyEmployees.Include(x => x.Employee).ThenInclude(x => x!.User).SingleOrDefaultAsync(x => x.CompanyId == companyId && x.EmployeeId == employeeId, ct);
@@ -72,8 +72,8 @@ public static class CompanyMemberEndpoints
     }
 
     private static CompanyMemberResponse ToResponse(CompanyEmployee x) => new(x.EmployeeId, x.Employee!.UserId, x.Employee.User!.Username, x.Employee.DisplayName, x.Employee.FullName, x.CompanyRole, x.IsArchitect);
-    private static async Task<bool> HasAnotherOwner(long companyId, long employeeId, BlueprintDbContext db, CancellationToken ct) => await db.CompanyEmployees.AnyAsync(x => x.CompanyId == companyId && x.EmployeeId != employeeId && x.CompanyRole == CompanyRoles.Owner && x.Employee!.User!.IsActive, ct);
-    private static async Task<long?> OwnerCompanyId(ClaimsPrincipal p, BlueprintDbContext db, CancellationToken ct) { var userId = UserId(p); return userId == 0 ? null : await db.CompanyEmployees.Where(x => x.Employee!.UserId == userId && x.CompanyRole == CompanyRoles.Owner && x.Employee.User!.IsActive && x.Company!.IsActive).Select(x => (long?)x.CompanyId).SingleOrDefaultAsync(ct); }
+    private static async Task<bool> HasAnotherOwner(long companyId, long employeeId, RaclettyDbContext db, CancellationToken ct) => await db.CompanyEmployees.AnyAsync(x => x.CompanyId == companyId && x.EmployeeId != employeeId && x.CompanyRole == CompanyRoles.Owner && x.Employee!.User!.IsActive, ct);
+    private static async Task<long?> OwnerCompanyId(ClaimsPrincipal p, RaclettyDbContext db, CancellationToken ct) { var userId = UserId(p); return userId == 0 ? null : await db.CompanyEmployees.Where(x => x.Employee!.UserId == userId && x.CompanyRole == CompanyRoles.Owner && x.Employee.User!.IsActive && x.Company!.IsActive).Select(x => (long?)x.CompanyId).SingleOrDefaultAsync(ct); }
     private static long UserId(ClaimsPrincipal p) => long.TryParse(p.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
     private static Dictionary<string,string[]> Validate(string? username, string? password, string? display, string? full, string? role) { var e = new Dictionary<string,string[]>(); if (username is not null) AdministrationValidation.ValidateRequired(e,"username",username,"Username",256); if (password is not null) AdministrationValidation.ValidateRequired(e,"password",password,"Password",1024); if (display is not null) AdministrationValidation.ValidateRequired(e,"displayName",display,"Display name",256); if (full is not null) AdministrationValidation.ValidateRequired(e,"fullName",full,"Full name",512); if (role is null || (role.Trim().ToLowerInvariant() != CompanyRoles.Owner && role.Trim().ToLowerInvariant() != CompanyRoles.Employee)) e["companyRole"]=["Company role must be owner or employee."]; return e; }
 }

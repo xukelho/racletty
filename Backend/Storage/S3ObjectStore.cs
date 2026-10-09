@@ -4,7 +4,7 @@ using Amazon.S3.Model;
 using Microsoft.Extensions.Options;
 using Amazon.Runtime;
 
-namespace Blueprint.Api.Storage;
+namespace Racletty.Api.Storage;
 
 public sealed class S3ObjectStore(IAmazonS3 client, IAmazonS3 grantClient, IOptions<ObjectStorageOptions> options, TimeProvider timeProvider) : IObjectStore
 {

@@ -1,6 +1,6 @@
-using Blueprint.Api.Contracts;
+using Racletty.Api.Contracts;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class HealthEndpoints
 {

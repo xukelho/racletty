@@ -1,9 +1,9 @@
-using Blueprint.Api.Data;
-using Blueprint.Api.Storage;
+using Racletty.Api.Data;
+using Racletty.Api.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-namespace Blueprint.Api.Services;
+namespace Racletty.Api.Services;
 
 public interface IFileService
 {
@@ -20,7 +20,7 @@ public interface IFileService
 public sealed record PendingUpload(Guid DocumentId, Guid StoredObjectId, PresignedUploadGrant Grant);
 public sealed record PendingReplacement(Guid StoredObjectId, PresignedUploadGrant Grant);
 
-public sealed class FileService(BlueprintDbContext db, IObjectStore objectStore, IOptions<ObjectStorageOptions> options, TimeProvider timeProvider, IProjectNotificationService notifications, IStorageQuotaService quotas) : IFileService
+public sealed class FileService(RaclettyDbContext db, IObjectStore objectStore, IOptions<ObjectStorageOptions> options, TimeProvider timeProvider, IProjectNotificationService notifications, IStorageQuotaService quotas) : IFileService
 {
     private readonly ObjectStorageOptions _options = options.Value;
 

@@ -64,8 +64,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void refresh();
     const handleAuthChange = () => void refresh();
-    window.addEventListener("blueprint:auth-changed", handleAuthChange);
-    return () => window.removeEventListener("blueprint:auth-changed", handleAuthChange);
+    window.addEventListener("racletty:auth-changed", handleAuthChange);
+    return () => window.removeEventListener("racletty:auth-changed", handleAuthChange);
   }, [refresh]);
 
   const updateProfile = useCallback(async (payload: UpdateCurrentProfile) => {

@@ -1,10 +1,10 @@
 using System.Security.Claims;
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Services;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class ProjectEndpoints
 {
@@ -23,7 +23,7 @@ public static class ProjectEndpoints
         return endpoints;
     }
 
-    private static async Task<IResult> List(ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> List(ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct);
         IQueryable<Project> query;
@@ -41,7 +41,7 @@ public static class ProjectEndpoints
         return TypedResults.Ok(items);
     }
 
-    private static async Task<IResult> Get(long id, ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> Get(long id, ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct);
         IQueryable<Project> query;
@@ -59,7 +59,7 @@ public static class ProjectEndpoints
         return project is null ? TypedResults.NotFound() : TypedResults.Ok(ToResponse(project, access));
     }
 
-    private static async Task<IResult> Create(CreateProjectRequest? request, ClaimsPrincipal principal, BlueprintDbContext db, IProjectNotificationService notifications, CancellationToken ct)
+    private static async Task<IResult> Create(CreateProjectRequest? request, ClaimsPrincipal principal, RaclettyDbContext db, IProjectNotificationService notifications, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct);
         if (access is null || !access.IsOwner) return TypedResults.NotFound();
@@ -86,7 +86,7 @@ public static class ProjectEndpoints
         return TypedResults.Created($"/api/projects/{project.Id}", ToResponse(project, access));
     }
 
-    private static async Task<IResult> Update(long id, UpdateProjectRequest? request, ClaimsPrincipal principal, BlueprintDbContext db, IProjectNotificationService notifications, CancellationToken ct)
+    private static async Task<IResult> Update(long id, UpdateProjectRequest? request, ClaimsPrincipal principal, RaclettyDbContext db, IProjectNotificationService notifications, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct);
         if (access is null || !access.IsOwner) return TypedResults.NotFound();
@@ -116,7 +116,7 @@ public static class ProjectEndpoints
         await db.Entry(project).Collection(x => x.ProjectClients).Query().Include(x => x.Client).LoadAsync(ct); await transaction.CommitAsync(ct); return TypedResults.Ok(ToResponse(project, access));
     }
 
-    private static async Task<IResult> UpdateMembers(long id, UpdateProjectMembersRequest? request, ClaimsPrincipal principal, BlueprintDbContext db, IProjectNotificationService notifications, CancellationToken ct)
+    private static async Task<IResult> UpdateMembers(long id, UpdateProjectMembersRequest? request, ClaimsPrincipal principal, RaclettyDbContext db, IProjectNotificationService notifications, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct); if (access is null || !access.IsOwner) return TypedResults.NotFound();
         if (request?.EmployeeIds is null || !await ValidEmployees(request.EmployeeIds, access.CompanyId, db, ct)) return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["employeeIds"] = ["Select valid company members."] });
@@ -140,7 +140,7 @@ public static class ProjectEndpoints
         await db.Entry(project).Collection(x => x.Members).Query().Include(x => x.Employee).LoadAsync(ct); return TypedResults.Ok(ToResponse(project, access));
     }
 
-    private static async Task<IResult> UpdatePhases(long id, UpdateProjectPhasesRequest? request, ClaimsPrincipal principal, BlueprintDbContext db, ProjectPhaseService phaseService, IProjectNotificationService notifications, CancellationToken ct)
+    private static async Task<IResult> UpdatePhases(long id, UpdateProjectPhasesRequest? request, ClaimsPrincipal principal, RaclettyDbContext db, ProjectPhaseService phaseService, IProjectNotificationService notifications, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct);
         if (access is null) return TypedResults.NotFound();
@@ -176,7 +176,7 @@ public static class ProjectEndpoints
         return TypedResults.Ok(ToResponse(project, access));
     }
 
-    private static async Task<IResult> Archive(long id, ClaimsPrincipal principal, BlueprintDbContext db, IProjectNotificationService notifications, CancellationToken ct)
+    private static async Task<IResult> Archive(long id, ClaimsPrincipal principal, RaclettyDbContext db, IProjectNotificationService notifications, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct); if (access is null || !access.IsOwner) return TypedResults.NotFound();
         var project = await db.Projects.SingleOrDefaultAsync(x => x.Id == id && x.CompanyId == access.CompanyId, ct); if (project is null) return TypedResults.NotFound();
@@ -187,7 +187,7 @@ public static class ProjectEndpoints
         await db.SaveChangesAsync(ct); return TypedResults.NoContent();
     }
 
-    private static async Task<IResult> Reactivate(long id, ClaimsPrincipal principal, BlueprintDbContext db, IProjectNotificationService notifications, CancellationToken ct)
+    private static async Task<IResult> Reactivate(long id, ClaimsPrincipal principal, RaclettyDbContext db, IProjectNotificationService notifications, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct); if (access is null || !access.IsOwner) return TypedResults.NotFound();
         var project = await db.Projects.SingleOrDefaultAsync(x => x.Id == id && x.CompanyId == access.CompanyId, ct); if (project is null) return TypedResults.NotFound();
@@ -198,17 +198,17 @@ public static class ProjectEndpoints
         await db.SaveChangesAsync(ct); return TypedResults.NoContent();
     }
 
-    private static async Task<IResult> ListCompanyMembers(ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> ListCompanyMembers(ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct); if (access is null || !access.IsOwner) return TypedResults.NotFound();
         var members = await db.CompanyEmployees.AsNoTracking().Where(x => x.CompanyId == access.CompanyId && x.IsArchitect && x.Employee!.User!.IsActive).OrderBy(x => x.Employee!.DisplayName).Select(x => new ProjectMemberResponse(x.EmployeeId, x.Employee!.DisplayName, x.Employee.Email ?? string.Empty)).ToArrayAsync(ct); return TypedResults.Ok(members);
     }
 
-    internal static IQueryable<Project> VisibleProjects(Access access, BlueprintDbContext db) => db.Projects.Where(x => x.CompanyId == access.CompanyId && (access.IsOwner || x.Members.Any(m => m.EmployeeId == access.EmployeeId)));
-    internal static IQueryable<Project> VisibleClientProjects(long clientId, BlueprintDbContext db) =>
+    internal static IQueryable<Project> VisibleProjects(Access access, RaclettyDbContext db) => db.Projects.Where(x => x.CompanyId == access.CompanyId && (access.IsOwner || x.Members.Any(m => m.EmployeeId == access.EmployeeId)));
+    internal static IQueryable<Project> VisibleClientProjects(long clientId, RaclettyDbContext db) =>
         db.Projects.Where(project => project.Company!.IsActive &&
             project.ProjectClients.Any(projectClient => projectClient.ClientId == clientId && projectClient.Client!.CompanyClients.Any(membership => membership.CompanyId == project.CompanyId)));
-    internal static async Task<long?> CurrentClientId(ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    internal static async Task<long?> CurrentClientId(ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         if (!principal.IsInRole("client") || !long.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)) return null;
         return await db.Clients.AsNoTracking().Where(client => client.UserId == userId && client.User!.IsActive).Select(client => (long?)client.Id).SingleOrDefaultAsync(ct);
@@ -234,7 +234,7 @@ public static class ProjectEndpoints
         project.ProjectClients.Remove(projectClient);
         return true;
     }
-    internal static async Task<bool> LockProject(long projectId, long companyId, BlueprintDbContext db, CancellationToken ct) =>
+    internal static async Task<bool> LockProject(long projectId, long companyId, RaclettyDbContext db, CancellationToken ct) =>
         await db.Database.SqlQuery<long>($"SELECT id AS \"Value\" FROM projects WHERE id = {projectId} AND company_id = {companyId} FOR UPDATE").SingleOrDefaultAsync(ct) != 0;
     private static bool CanEditTimeline(Project project, Access access) => access.IsOwner || project.Members.Any(member => member.EmployeeId == access.EmployeeId);
     private static List<ProjectPhase> BuildPhases(IReadOnlyList<string> phaseCodes, int? currentPhaseIndex) => phaseCodes.Select((code, position) => new ProjectPhase { PhaseCode = code, Position = position, IsCurrent = position == currentPhaseIndex }).ToList();
@@ -263,15 +263,15 @@ public static class ProjectEndpoints
         var host = uri.Host.ToLowerInvariant();
         return host is "maps.app.goo.gl" or "goo.gl" || host == "google.com" || host.EndsWith(".google.com", StringComparison.Ordinal);
     }
-    private static async Task<bool> ValidClients(IReadOnlyList<long>? ids, long companyId, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<bool> ValidClients(IReadOnlyList<long>? ids, long companyId, RaclettyDbContext db, CancellationToken ct)
     {
         if (ids is null || ids.Count != ids.Distinct().Count()) return false;
         return await db.CompanyClients.CountAsync(x => x.CompanyId == companyId && ids.Contains(x.ClientId), ct) == ids.Count;
     }
-    private static async Task<bool> ValidEmployees(IReadOnlyList<long>? ids, long companyId, BlueprintDbContext db, CancellationToken ct) { if (ids is null || ids.Count != ids.Distinct().Count()) return false; return await db.CompanyEmployees.CountAsync(x => x.CompanyId == companyId && x.IsArchitect && x.Employee!.User!.IsActive && ids.Contains(x.EmployeeId), ct) == ids.Count; }
-    private static Task<long[]> ClientUserIds(IEnumerable<long> ids, BlueprintDbContext db, CancellationToken ct) =>
+    private static async Task<bool> ValidEmployees(IReadOnlyList<long>? ids, long companyId, RaclettyDbContext db, CancellationToken ct) { if (ids is null || ids.Count != ids.Distinct().Count()) return false; return await db.CompanyEmployees.CountAsync(x => x.CompanyId == companyId && x.IsArchitect && x.Employee!.User!.IsActive && ids.Contains(x.EmployeeId), ct) == ids.Count; }
+    private static Task<long[]> ClientUserIds(IEnumerable<long> ids, RaclettyDbContext db, CancellationToken ct) =>
         db.Clients.AsNoTracking().Where(item => ids.Contains(item.Id)).Select(item => item.UserId).ToArrayAsync(ct);
-    private static Task<long[]> EmployeeUserIds(IEnumerable<long> ids, BlueprintDbContext db, CancellationToken ct) =>
+    private static Task<long[]> EmployeeUserIds(IEnumerable<long> ids, RaclettyDbContext db, CancellationToken ct) =>
         db.Employees.AsNoTracking().Where(item => ids.Contains(item.Id)).Select(item => item.UserId).ToArrayAsync(ct);
     private static string ParticipantSummary(int added, int removed) => (added, removed) switch
     {
@@ -283,7 +283,7 @@ public static class ProjectEndpoints
 
 internal sealed record Access(long UserId, long EmployeeId, long CompanyId, bool IsOwner)
 {
-    internal static async Task<Access?> ForUser(ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    internal static async Task<Access?> ForUser(ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         if (!long.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)) return null;
         return await db.CompanyEmployees.AsNoTracking().Where(x => x.Employee!.UserId == userId && x.Employee.User!.IsActive && x.Company!.IsActive).Select(x => new Access(userId, x.EmployeeId, x.CompanyId, x.CompanyRole == CompanyRoles.Owner)).SingleOrDefaultAsync(ct);

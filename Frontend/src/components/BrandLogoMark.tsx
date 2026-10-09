@@ -1,4 +1,4 @@
-import logoUrl from "../assets/logo.svg";
+import logoUrl from "../assets/racletty-logo.svg";
 
 type BrandLogoMarkProps = {
   className?: string;
