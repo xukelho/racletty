@@ -78,7 +78,6 @@ function DashboardPage() {
   return <PortalShell>
     <header className="dashboard-header">
       <div><p className="dashboard-kicker">Segunda-feira, 27 de julho</p><h1>Bom dia, {firstName}</h1><p>Acompanha os projetos ativos e o que requer a tua atenção.</p></div>
-      {profile?.companyRole === "owner" && <button className="primary-action" type="button" onClick={() => navigate("/projects/new")}><span aria-hidden="true">+</span>Criar projeto</button>}
     </header>
 
     <div className="dashboard-view-toolbar">

@@ -484,13 +484,14 @@ describe("dashboard", () => {
     expect(screen.getByRole("button", { name: "Notificações agrupadas por projeto" })).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("shows the owner action and opens a project by its real id", async () => {
+  it("opens a project by its real id for an owner", async () => {
     vi.restoreAllMocks();
     mockCompanyDashboard("owner");
     const user = userEvent.setup();
     renderApp("/dashboard");
 
-    expect(await screen.findByRole("button", { name: /Criar projeto/ })).toBeInTheDocument();
+    await screen.findByText("Casa do Vale");
+    expect(screen.queryByRole("button", { name: /Criar projeto/ })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Abrir projeto Casa do Vale" }));
     expect(await screen.findByRole("heading", { name: "Casa do Vale", level: 1 })).toBeInTheDocument();
   });
