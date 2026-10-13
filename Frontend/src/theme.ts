@@ -1,7 +1,7 @@
 export type ThemePreference = "light" | "dark" | "dynamic";
 export type ResolvedTheme = "light" | "dark";
 
-export const THEME_PREFERENCE_CACHE_KEY = "blueprint.theme.preference";
+export const THEME_PREFERENCE_CACHE_KEY = "racletty.theme.preference";
 
 const LIGHT_START_HOUR = 7;
 const DARK_START_HOUR = 19;

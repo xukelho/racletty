@@ -23,6 +23,7 @@ export type ProfileFormValue = ContactFormValue & {
   companyId: number | null;
   companyIds: number[];
   architect: boolean;
+  isCompanyOwner: boolean;
 };
 export type CompanyFormValue = {
   name: string;
@@ -228,6 +229,10 @@ export function EmployeeForm(props: CommonProps<ProfileFormValue> & {
             Arquiteto/Arquiteta
           </label>
         )}
+        <label className="admin-check admin-form-grid__wide">
+          <input type="checkbox" checked={value.isCompanyOwner} onChange={(event) => onChange("isCompanyOwner", event.target.checked)} />
+          Proprietário da empresa
+        </label>
       </div>
       <ContactFields value={value} errors={errors} onChange={onChange} />
       {!creating && user && <small>Perfis da conta: {user.roles.map((role) => role.name).join(", ")}</small>}

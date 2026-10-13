@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Npgsql;
 
-namespace Blueprint.Api.IntegrationTests;
+namespace Racletty.Api.IntegrationTests;
 
 public sealed class CompanyIntegrationTests(
     PostgreSqlApiFixture fixture)

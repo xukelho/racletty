@@ -1,8 +1,8 @@
-using Blueprint.Api.Authentication;
-using Blueprint.Api.Data;
-using Blueprint.Api.Endpoints;
-using Blueprint.Api.Services;
-using Blueprint.Api.Storage;
+using Racletty.Api.Authentication;
+using Racletty.Api.Data;
+using Racletty.Api.Endpoints;
+using Racletty.Api.Services;
+using Racletty.Api.Storage;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +15,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' is required.");
 
-builder.Services.AddDbContext<BlueprintDbContext>(
+builder.Services.AddDbContext<RaclettyDbContext>(
     options => options.UseNpgsql(connectionString));
 builder.Services.AddScoped<ICredentialValidator, DatabaseCredentialValidator>();
 builder.Services.AddSingleton(TimeProvider.System);
@@ -42,7 +42,7 @@ builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.Cookie.Name = "blueprint.session";
+        options.Cookie.Name = "racletty.session";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Strict;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;

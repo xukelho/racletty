@@ -1,10 +1,10 @@
-# Blueprint
+# Racletty
 
-Blueprint is a browser-based collaboration platform for architecture professionals and their clients.
+Racletty is a browser-based collaboration platform for architecture professionals and their clients.
 
 It provides a shared, revision-centred workspace where professionals can publish project revisions and clients can review them, provide contextual feedback and record decisions. The product is intended to improve clarity, traceability and confidence throughout the revision and approval process.
 
-Blueprint does not replace CAD or BIM authoring software. It complements existing professional tools by centralising the collaboration that currently takes place across email, messaging applications, shared folders and meetings.
+Racletty does not replace CAD or BIM authoring software. It complements existing professional tools by centralising the collaboration that currently takes place across email, messaging applications, shared folders and meetings.
 
 ## Project Status
 
@@ -104,11 +104,11 @@ Use `Ctrl+C` to stop a foreground process.
 | `make stopdb` | Stop only the database service. |
 | `make downdb` | Stop and remove only the database container. Its named volume is retained. |
 | `make restartdb` | Remove the database container, then start it again. |
-| `make startapi` / `make upapi` | Start only the `blueprint-api` service. |
+| `make startapi` / `make upapi` | Start only the `racletty-api` service. |
 | `make stopapi` | Stop only the API service. |
 | `make downapi` | Stop and remove only the API container. |
 | `make restartapi` | Remove the API container, then start it again. |
-| `make startfrontend` / `make upfrontend` | Start only the `blueprint-frontend` service. |
+| `make startfrontend` / `make upfrontend` | Start only the `racletty-frontend` service. |
 | `make stopfrontend` | Stop only the frontend service. |
 | `make downfrontend` | Stop and remove only the frontend container. |
 | `make restartfrontend` | Remove the frontend container, then start it again. |
@@ -119,4 +119,4 @@ and remove that service's container, which provides the equivalent scoped result
 
 ## Guiding Principle
 
-Blueprint should make it unambiguous which revision is current, what feedback remains open, what decisions were made and who made them—without requiring clients to install specialist BIM software.
+Racletty should make it unambiguous which revision is current, what feedback remains open, what decisions were made and who made them—without requiring clients to install specialist BIM software.

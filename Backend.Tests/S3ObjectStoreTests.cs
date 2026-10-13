@@ -1,9 +1,9 @@
 using Amazon.Runtime;
 using Amazon.S3;
-using Blueprint.Api.Storage;
+using Racletty.Api.Storage;
 using Microsoft.Extensions.Options;
 
-namespace Blueprint.Api.IntegrationTests;
+namespace Racletty.Api.IntegrationTests;
 
 public sealed class S3ObjectStoreTests
 {
@@ -15,7 +15,7 @@ public sealed class S3ObjectStoreTests
             Endpoint = "http://minio:9000",
             PublicEndpoint = "http://localhost:9000",
             Region = "us-east-1",
-            Bucket = "blueprint-private",
+            Bucket = "racletty-private",
             AccessKey = "access-key",
             SecretKey = "secret-key",
             ForcePathStyle = true

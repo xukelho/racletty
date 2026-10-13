@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
 
 # Build from the Backend directory:
-#   docker build -t blueprint-api ./Backend
+#   docker build -t racletty-api ./Backend
 #
 # If this directory later contains more than one project, specify the API project:
-#   docker build --build-arg PROJECT=src/Blueprint.Api/Blueprint.Api.csproj -t blueprint-api ./Backend
+#   docker build --build-arg PROJECT=src/Racletty.Api/Racletty.Api.csproj -t racletty-api ./Backend
 ARG DOTNET_VERSION=10.0
 
 FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build

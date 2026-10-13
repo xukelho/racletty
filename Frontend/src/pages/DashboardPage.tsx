@@ -10,7 +10,7 @@ import { useNotificationSummary } from "../hooks/useNotificationSummary";
 import { useProfile } from "../profile/ProfileContext";
 
 type DashboardLayout = "attention-first" | "by-project";
-const DASHBOARD_LAYOUT_KEY = "blueprint.dashboard.notification-layout";
+const DASHBOARD_LAYOUT_KEY = "racletty.dashboard.notification-layout";
 
 const initialLayout = (): DashboardLayout => sessionStorage.getItem(DASHBOARD_LAYOUT_KEY) === "by-project" ? "by-project" : "attention-first";
 
@@ -78,7 +78,6 @@ function DashboardPage() {
   return <PortalShell>
     <header className="dashboard-header">
       <div><p className="dashboard-kicker">Segunda-feira, 27 de julho</p><h1>Bom dia, {firstName}</h1><p>Acompanha os projetos ativos e o que requer a tua atenção.</p></div>
-      {profile?.companyRole === "owner" && <button className="primary-action" type="button" onClick={() => navigate("/projects/new")}><span aria-hidden="true">+</span>Criar projeto</button>}
     </header>
 
     <div className="dashboard-view-toolbar">

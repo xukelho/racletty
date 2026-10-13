@@ -1,10 +1,10 @@
-using Blueprint.Api.Data;
+using Racletty.Api.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Authentication;
+namespace Racletty.Api.Authentication;
 
-public sealed class DatabaseCredentialValidator(BlueprintDbContext dbContext)
+public sealed class DatabaseCredentialValidator(RaclettyDbContext dbContext)
     : ICredentialValidator
 {
     private readonly PasswordHasher<User> _passwordHasher = new();

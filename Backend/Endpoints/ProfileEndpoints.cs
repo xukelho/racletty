@@ -1,13 +1,13 @@
 using System.Security.Claims;
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Validation;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Validation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class ProfileEndpoints
 {
@@ -49,7 +49,7 @@ public static class ProfileEndpoints
 
     private static async Task<IResult> GetProfile(
         ClaimsPrincipal principal,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         if (!TryGetUserId(principal, out var userId))
@@ -77,7 +77,7 @@ public static class ProfileEndpoints
     private static async Task<IResult> UpdateProfile(
         UpdateCurrentProfileRequest? request,
         HttpContext httpContext,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         if (!TryGetUserId(httpContext.User, out var userId))
@@ -236,7 +236,7 @@ public static class ProfileEndpoints
     private static async Task<IResult> UpdateThemePreference(
         UpdateThemePreferenceRequest? request,
         ClaimsPrincipal principal,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         if (!TryGetUserId(principal, out var userId)) return TypedResults.Unauthorized();
@@ -265,7 +265,7 @@ public static class ProfileEndpoints
     private static async Task<IResult> ChangePassword(
         ChangePasswordRequest? request,
         ClaimsPrincipal principal,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         if (!TryGetUserId(principal, out var userId)) return TypedResults.Unauthorized();
@@ -309,7 +309,7 @@ public static class ProfileEndpoints
         return errors;
     }
 
-    private static IQueryable<User> ProfileQuery(BlueprintDbContext dbContext) =>
+    private static IQueryable<User> ProfileQuery(RaclettyDbContext dbContext) =>
         dbContext.Users
             .Include(candidate => candidate.UserRoles)
                 .ThenInclude(candidate => candidate.Role)
@@ -321,7 +321,7 @@ public static class ProfileEndpoints
                     .ThenInclude(candidate => candidate!.Company);
 
     private static Task<ProfileCompanyOption[]> LoadCompanyOptions(
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken) =>
         dbContext.Companies.AsNoTracking()
             .Where(candidate => candidate.IsActive)

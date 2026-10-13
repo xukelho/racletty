@@ -1,11 +1,11 @@
 using System.Security.Claims;
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Services;
-using Blueprint.Api.Storage;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Services;
+using Racletty.Api.Storage;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class ProjectDocumentEndpoints
 {
@@ -91,7 +91,7 @@ public static class ProjectDocumentEndpoints
         return endpoints;
     }
 
-    private static async Task<IResult> List(long projectId, ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> List(long projectId, ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var access = await ProjectDocumentAccessService.FindAccessAsync(projectId, principal, db, ct);
         if (access is null) return TypedResults.NotFound();
@@ -115,7 +115,7 @@ public static class ProjectDocumentEndpoints
     }
 
     private static async Task<IResult> CreateUpload(long projectId, long phaseId, CreateDocumentUploadRequest? request,
-        ClaimsPrincipal principal, BlueprintDbContext db, IFileService files, CancellationToken ct)
+        ClaimsPrincipal principal, RaclettyDbContext db, IFileService files, CancellationToken ct)
     {
         var accessResult = await RequireMutationAccessAsync(projectId, principal, db, ct);
         if (accessResult.Result is not null) return accessResult.Result;
@@ -131,7 +131,7 @@ public static class ProjectDocumentEndpoints
     }
 
     private static async Task<IResult> CompleteUpload(long projectId, Guid documentId, ClaimsPrincipal principal,
-        BlueprintDbContext db, IFileService files, CancellationToken ct)
+        RaclettyDbContext db, IFileService files, CancellationToken ct)
     {
         var accessResult = await RequireMutationAccessAsync(projectId, principal, db, ct);
         if (accessResult.Result is not null) return accessResult.Result;
@@ -145,7 +145,7 @@ public static class ProjectDocumentEndpoints
     }
 
     private static async Task<IResult> CreateDownload(long projectId, Guid documentId, ClaimsPrincipal principal,
-        BlueprintDbContext db, IFileService files, CancellationToken ct)
+        RaclettyDbContext db, IFileService files, CancellationToken ct)
     {
         var access = await ProjectDocumentAccessService.FindAccessAsync(projectId, principal, db, ct);
         if (access is null || !await ActiveDocumentBelongsToProjectAsync(projectId, documentId, db, ct)) return TypedResults.NotFound();
@@ -160,7 +160,7 @@ public static class ProjectDocumentEndpoints
     }
 
     private static async Task<IResult> GetContent(long projectId, Guid documentId, ClaimsPrincipal principal,
-        HttpContext httpContext, BlueprintDbContext db, IObjectStore objectStore, CancellationToken ct)
+        HttpContext httpContext, RaclettyDbContext db, IObjectStore objectStore, CancellationToken ct)
     {
         var access = await ProjectDocumentAccessService.FindAccessAsync(projectId, principal, db, ct);
         if (access is null) return TypedResults.NotFound();
@@ -187,7 +187,7 @@ public static class ProjectDocumentEndpoints
     }
 
     private static async Task<IResult> GetDrawing(long projectId, Guid documentId, ClaimsPrincipal principal,
-        BlueprintDbContext db, DrawingPreviewService previews, CancellationToken ct)
+        RaclettyDbContext db, DrawingPreviewService previews, CancellationToken ct)
     {
         var access = await ProjectDocumentAccessService.FindAccessAsync(projectId, principal, db, ct);
         if (access is null) return TypedResults.NotFound();
@@ -211,7 +211,7 @@ public static class ProjectDocumentEndpoints
     }
 
     private static async Task<IResult> SetVisibility(long projectId, Guid documentId, SetDocumentVisibilityRequest? request,
-        ClaimsPrincipal principal, BlueprintDbContext db, IFileService files, CancellationToken ct)
+        ClaimsPrincipal principal, RaclettyDbContext db, IFileService files, CancellationToken ct)
     {
         var accessResult = await RequireMutationAccessAsync(projectId, principal, db, ct);
         if (accessResult.Result is not null) return accessResult.Result;
@@ -229,7 +229,7 @@ public static class ProjectDocumentEndpoints
     }
 
     private static async Task<IResult> Move(long projectId, Guid documentId, MoveDocumentRequest? request,
-        ClaimsPrincipal principal, BlueprintDbContext db, IFileService files, CancellationToken ct)
+        ClaimsPrincipal principal, RaclettyDbContext db, IFileService files, CancellationToken ct)
     {
         var accessResult = await RequireMutationAccessAsync(projectId, principal, db, ct);
         if (accessResult.Result is not null) return accessResult.Result;
@@ -246,7 +246,7 @@ public static class ProjectDocumentEndpoints
     }
 
     private static async Task<IResult> CreateReplacement(long projectId, Guid documentId, CreateReplacementUploadRequest? request,
-        ClaimsPrincipal principal, BlueprintDbContext db, IFileService files, CancellationToken ct)
+        ClaimsPrincipal principal, RaclettyDbContext db, IFileService files, CancellationToken ct)
     {
         var accessResult = await RequireMutationAccessAsync(projectId, principal, db, ct);
         if (accessResult.Result is not null) return accessResult.Result;
@@ -262,7 +262,7 @@ public static class ProjectDocumentEndpoints
     }
 
     private static async Task<IResult> CompleteReplacement(long projectId, Guid documentId, Guid storedObjectId,
-        ClaimsPrincipal principal, BlueprintDbContext db, IFileService files, CancellationToken ct)
+        ClaimsPrincipal principal, RaclettyDbContext db, IFileService files, CancellationToken ct)
     {
         var accessResult = await RequireMutationAccessAsync(projectId, principal, db, ct);
         if (accessResult.Result is not null) return accessResult.Result;
@@ -278,7 +278,7 @@ public static class ProjectDocumentEndpoints
     }
 
     private static async Task<IResult> Delete(long projectId, Guid documentId, ClaimsPrincipal principal,
-        BlueprintDbContext db, IFileService files, CancellationToken ct)
+        RaclettyDbContext db, IFileService files, CancellationToken ct)
     {
         var accessResult = await RequireMutationAccessAsync(projectId, principal, db, ct);
         if (accessResult.Result is not null) return accessResult.Result;
@@ -292,7 +292,7 @@ public static class ProjectDocumentEndpoints
     }
 
     private static async Task<IResult> RemovePhase(long projectId, long phaseId, RemoveProjectPhaseRequest? request,
-        ClaimsPrincipal principal, BlueprintDbContext db, PhaseRemovalService removal, CancellationToken ct)
+        ClaimsPrincipal principal, RaclettyDbContext db, PhaseRemovalService removal, CancellationToken ct)
     {
         var accessResult = await RequireMutationAccessAsync(projectId, principal, db, ct);
         if (accessResult.Result is not null) return accessResult.Result;
@@ -316,7 +316,7 @@ public static class ProjectDocumentEndpoints
     }
 
     private static async Task<(ProjectFileAccess? Access, IResult? Result)> RequireMutationAccessAsync(
-        long projectId, ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+        long projectId, ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var access = await ProjectDocumentAccessService.FindAccessAsync(projectId, principal, db, ct);
         if (access is null || !access.IsProfessional) return (null, TypedResults.NotFound());
@@ -324,10 +324,10 @@ public static class ProjectDocumentEndpoints
         return (access, null);
     }
 
-    private static Task<bool> ActiveDocumentBelongsToProjectAsync(long projectId, Guid documentId, BlueprintDbContext db, CancellationToken ct) =>
+    private static Task<bool> ActiveDocumentBelongsToProjectAsync(long projectId, Guid documentId, RaclettyDbContext db, CancellationToken ct) =>
         db.ProjectDocuments.AnyAsync(document => document.Id == documentId && document.ProjectId == projectId && !document.IsDeleted, ct);
 
-    private static async Task<ProjectDocumentResponse?> GetDocumentAsync(long projectId, Guid documentId, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<ProjectDocumentResponse?> GetDocumentAsync(long projectId, Guid documentId, RaclettyDbContext db, CancellationToken ct)
     {
         var document = await db.ProjectDocuments.AsNoTracking().Include(candidate => candidate.StoredObject)
             .SingleOrDefaultAsync(candidate => candidate.ProjectId == projectId && candidate.Id == documentId && !candidate.IsDeleted, ct);
@@ -356,7 +356,7 @@ public static class ProjectDocumentEndpoints
         return format is "dxf" or "dwg" or "dwfx" ? new DocumentPreviewResponse("drawing", format) : null;
     }
 
-    private static async Task<Dictionary<long, string>> UploaderNamesAsync(IEnumerable<long> userIds, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<Dictionary<long, string>> UploaderNamesAsync(IEnumerable<long> userIds, RaclettyDbContext db, CancellationToken ct)
     {
         var ids = userIds.Distinct().ToArray();
         return await db.Users.AsNoTracking().Where(user => ids.Contains(user.Id))

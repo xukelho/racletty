@@ -8,8 +8,8 @@ export const PLATFORM_ADMIN_ROLE = "platform admin";
 export const EMPLOYEE_ROLE = "employee";
 export const CLIENT_ROLE = "client";
 export const ARCHITECT_ROLE = "architect";
-const AUTH_ROLES_KEY = "blueprint.auth.roles";
-const LEGACY_AUTH_ROLE_KEY = "blueprint.auth.role";
+const AUTH_ROLES_KEY = "racletty.auth.roles";
+const LEGACY_AUTH_ROLE_KEY = "racletty.auth.role";
 
 export function getAuthenticatedRoles(): string[] {
   try {
@@ -26,7 +26,7 @@ export function setAuthenticatedRoles(roles: string[], environment?: unknown) {
   sessionStorage.setItem(AUTH_ROLES_KEY, JSON.stringify([...new Set(roles)]));
   sessionStorage.removeItem(LEGACY_AUTH_ROLE_KEY);
   setApplicationEnvironment(environment);
-  window.dispatchEvent(new Event("blueprint:auth-changed"));
+  window.dispatchEvent(new Event("racletty:auth-changed"));
 }
 
 export function clearAuthenticatedRoles() {
@@ -35,7 +35,7 @@ export function clearAuthenticatedRoles() {
   clearApplicationEnvironment();
   clearCachedThemePreference();
   applyThemePreference("light");
-  window.dispatchEvent(new Event("blueprint:auth-changed"));
+  window.dispatchEvent(new Event("racletty:auth-changed"));
 }
 
 export function hasRole(role: string) {

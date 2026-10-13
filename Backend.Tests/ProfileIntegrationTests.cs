@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace Blueprint.Api.IntegrationTests;
+namespace Racletty.Api.IntegrationTests;
 
 public sealed class ProfileIntegrationTests(
     PostgreSqlApiFixture fixture)
@@ -24,7 +24,7 @@ public sealed class ProfileIntegrationTests(
         Assert.Equal(HttpStatusCode.OK, login.StatusCode);
         Assert.Contains(
             login.Headers.GetValues("Set-Cookie"),
-            value => value.Contains("blueprint.session=", StringComparison.Ordinal));
+            value => value.Contains("racletty.session=", StringComparison.Ordinal));
 
         using var noAdminProfile = await fixture.Client.GetAsync("/api/profile");
         Assert.Equal(HttpStatusCode.NotFound, noAdminProfile.StatusCode);
@@ -62,7 +62,7 @@ public sealed class ProfileIntegrationTests(
         Assert.Equal(HttpStatusCode.OK, update.StatusCode);
         Assert.Contains(
             update.Headers.GetValues("Set-Cookie"),
-            value => value.Contains("blueprint.session=", StringComparison.Ordinal));
+            value => value.Contains("racletty.session=", StringComparison.Ordinal));
         var updated = await update.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("profile.client.updated", updated.GetProperty("username").GetString());
         Assert.Equal("Marta Atualizada", updated.GetProperty("displayName").GetString());

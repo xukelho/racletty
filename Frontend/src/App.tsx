@@ -51,10 +51,10 @@ function NotificationsRoute() {
 }
 
 function subscribeToAuthenticationChanges(onStoreChange: () => void) {
-  window.addEventListener("blueprint:auth-changed", onStoreChange);
+  window.addEventListener("racletty:auth-changed", onStoreChange);
   window.addEventListener("storage", onStoreChange);
   return () => {
-    window.removeEventListener("blueprint:auth-changed", onStoreChange);
+    window.removeEventListener("racletty:auth-changed", onStoreChange);
     window.removeEventListener("storage", onStoreChange);
   };
 }

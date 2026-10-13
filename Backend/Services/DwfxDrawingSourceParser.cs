@@ -3,9 +3,9 @@ using System.IO.Compression;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
-using Blueprint.Api.Contracts;
+using Racletty.Api.Contracts;
 
-namespace Blueprint.Api.Services;
+namespace Racletty.Api.Services;
 
 /// <summary>Reads the XPS vector pages embedded in a DWFX package into the neutral drawing contract.</summary>
 public sealed partial class DwfxDrawingSourceParser : IDrawingSourceParser

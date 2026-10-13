@@ -4,13 +4,13 @@ Status: Draft, ready for Orchestrator review
 Owner: feature-architect (TASK-0015 / PKG-001)  
 Last updated: 2026-09-19
 
-Replace the current graphical logo with the supplied `raclette logo.svg` across the application. This task delivers the implementation plan; application changes follow in the parent workflow TASK-0014.
+Replace the current graphical logo with the supplied `racletty logo.svg` across the application. This task delivers the implementation plan; application changes follow in the parent workflow TASK-0014.
 
 ## Verified inventory
 
 | Location | Current behaviour | Planned change |
 | --- | --- | --- |
-| `Frontend/src/components/BlueprintLogoMark.tsx` | Inline old geometric mark, inheriting `currentColor` | Replace with a shared `BrandLogoMark` wrapper loading the supplied SVG |
+| `Frontend/src/components/RaclettyLogoMark.tsx` | Inline old geometric mark, inheriting `currentColor` | Replace with a shared `BrandLogoMark` wrapper loading the supplied SVG |
 | `Frontend/src/pages/LoginPage.tsx:107` | Desktop login logo | Use the shared replacement |
 | `Frontend/src/pages/LoginPage.tsx:150` | Mobile login logo, displayed at widths up to 760 px | Use the shared replacement |
 | `Frontend/src/components/PortalShell.tsx:126` | Shared portal sidebar logo | Use the shared replacement for every portal role |
@@ -29,11 +29,11 @@ The supplied file is untracked, parses as XML, and contains a square `0 0 512 51
 3. Update both page/component imports and all three render sites. Update `.brand__mark svg` and `.sidebar-brand__mark svg` to target the image or a dedicated logo class, with explicit square dimensions, `display: block` and `object-fit: contain`.
 4. Check legibility and adjust the logo presentation. Current images are only 25 px on login and 24 px in the sidebar; the new 4-unit lines become approximately 0.19 px at those sizes. Start by using more of the existing 38 px/36 px containers. Use a neutral light logo tile if needed to support the fixed blue strokes, with a targeted dark-theme override so the shared accent rule does not restore the old background. Determine final sizes from rendered inspection; do not simplify, crop or recolour the supplied artwork without a further design decision.
 5. Ensure the sidebar brand button retains an accessible name when its text is hidden in collapsed mode; add a stable descriptive `aria-label` if needed. Preserve its dashboard navigation and keyboard focus behaviour.
-6. Audit the final tree for `BlueprintLogoMark` and the old logo path data. The component and asset must no longer contain the old artwork. Keep product naming changes separate: the wordmark text, page titles, metadata, namespaces and storage keys still use Blueprint. The source filename alone does not settle whether the future product spelling is Raclety or Raclette.
+6. Audit the final tree for `RaclettyLogoMark` and the old logo path data. The component and asset must no longer contain the old artwork. The wordmark text, page titles, metadata, namespaces and storage keys use Racletty.
 
 ## Validation and acceptance
 
-- Run the existing frontend build and test suite in the configured Node 22 environment. With the Compose frontend running, use `docker compose exec blueprint-frontend npm run build` and `docker compose exec blueprint-frontend npm run test:run` from the repository root.
+- Run the existing frontend build and test suite in the configured Node 22 environment. With the Compose frontend running, use `docker compose exec racletty-frontend npm run build` and `docker compose exec racletty-frontend npm run test:run` from the repository root.
 - Inspect desktop login, mobile login (including either side of the 760 px breakpoint), and the portal sidebar expanded/collapsed. Inspect portal light and dark themes and representative administrator, company, employee and client routes using the shared shell.
 - Confirm that the original blue artwork loads without distortion, clipping or broken requests; fine lines remain reasonably legible, brand text stays aligned, and navigation/focus still works. Capture before/after screenshots for review.
 - Inspect the production build or preview to confirm that the bundled asset resolves without depending on the root source file. Re-scan for old component imports and old artwork.

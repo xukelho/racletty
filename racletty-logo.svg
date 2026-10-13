@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">Technical raclette spatula icon with downward-tapering blade</title>
-  <desc id="desc">A one-piece raclette spatula with a narrow handle and a broad triangular paddle tapering downward to a short scraping edge, drawn only with blue vector lines.</desc>
+  <title id="title">Technical Racletty spatula icon with downward-tapering blade</title>
+  <desc id="desc">A one-piece Racletty spatula with a narrow handle and a broad triangular paddle tapering downward to a short scraping edge, drawn only with blue vector lines.</desc>
 
   <g fill="none" stroke="#2563EB" stroke-linecap="round" stroke-linejoin="round">
-    <!-- One-piece raclette spatula: wide shoulders, downward-pointing triangular blade -->
+    <!-- One-piece Racletty spatula: wide shoulders, downward-pointing triangular blade -->
     <path stroke-width="10" d="
       M236 54
       Q226 54 226 66

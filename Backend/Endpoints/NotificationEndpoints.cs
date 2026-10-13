@@ -1,10 +1,10 @@
 using System.Security.Claims;
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Services;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class NotificationEndpoints
 {
@@ -21,7 +21,7 @@ public static class NotificationEndpoints
         return endpoints;
     }
 
-    private static async Task<IResult> List(long? beforeId, int? limit, bool? unreadOnly, long? projectId, ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> List(long? beforeId, int? limit, bool? unreadOnly, long? projectId, ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         if (!TryUserId(principal, out var userId)) return TypedResults.Unauthorized();
         var pageSize = Math.Clamp(limit ?? DefaultPageSize, 1, MaximumPageSize);
@@ -40,7 +40,7 @@ public static class NotificationEndpoints
         return TypedResults.Ok(new NotificationPageResponse(rows.Take(pageSize).ToArray(), rows.Length > pageSize));
     }
 
-    private static async Task<IResult> Summary(ClaimsPrincipal principal, BlueprintDbContext db, TimeProvider timeProvider, CancellationToken ct)
+    private static async Task<IResult> Summary(ClaimsPrincipal principal, RaclettyDbContext db, TimeProvider timeProvider, CancellationToken ct)
     {
         if (!TryUserId(principal, out var userId)) return TypedResults.Unauthorized();
         var groupedUnreadCounts = await db.UserNotifications.AsNoTracking()
@@ -60,7 +60,7 @@ public static class NotificationEndpoints
         return TypedResults.Ok(new NotificationSummaryResponse(unread, invitations, unread + invitations, projectUnreadCounts));
     }
 
-    private static async Task<IResult> MarkRead(long id, ClaimsPrincipal principal, BlueprintDbContext db, TimeProvider timeProvider, CancellationToken ct)
+    private static async Task<IResult> MarkRead(long id, ClaimsPrincipal principal, RaclettyDbContext db, TimeProvider timeProvider, CancellationToken ct)
     {
         if (!TryUserId(principal, out var userId)) return TypedResults.Unauthorized();
         var notification = await db.UserNotifications.SingleOrDefaultAsync(item => item.Id == id && item.RecipientUserId == userId, ct);
@@ -69,7 +69,7 @@ public static class NotificationEndpoints
         return TypedResults.NoContent();
     }
 
-    private static async Task<IResult> MarkAllRead(ClaimsPrincipal principal, BlueprintDbContext db, TimeProvider timeProvider, CancellationToken ct)
+    private static async Task<IResult> MarkAllRead(ClaimsPrincipal principal, RaclettyDbContext db, TimeProvider timeProvider, CancellationToken ct)
     {
         if (!TryUserId(principal, out var userId)) return TypedResults.Unauthorized();
         await db.UserNotifications.Where(item => item.RecipientUserId == userId && item.ReadAt == null)

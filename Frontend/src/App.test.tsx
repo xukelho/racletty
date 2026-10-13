@@ -239,14 +239,14 @@ describe("login", () => {
 
     expect(await screen.findByRole("heading", { name: "Administração", level: 1 }))
       .toBeInTheDocument();
-    expect(sessionStorage.getItem("blueprint.auth.roles"))
+    expect(sessionStorage.getItem("racletty.auth.roles"))
       .toBe(JSON.stringify(["platform admin"]));
   });
 
   it("redirects an unauthenticated visit to the dashboard to sign-in", async () => {
     renderApp("/dashboard");
 
-    expect(await screen.findByText("Sign in to blueprint")).toBeInTheDocument();
+    expect(await screen.findByText("Sign in to racletty")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /Bom dia, Ana/ })).not.toBeInTheDocument();
   });
 
@@ -263,8 +263,8 @@ describe("login", () => {
   });
 
   it("posts credentials and navigates after a successful login", async () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["client"]));
-    sessionStorage.setItem("blueprint.auth.role", "company");
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["client"]));
+    sessionStorage.setItem("racletty.auth.role", "company");
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
       new Response(JSON.stringify(
         String(input) === "/api/auth/login"
@@ -279,15 +279,15 @@ describe("login", () => {
 
     await user.click(screen.getByRole("button", { name: "Sign in" }));
 
-    await waitFor(() => expect(screen.queryByText("Sign in to blueprint")).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText("Sign in to racletty")).not.toBeInTheDocument());
     expect(await screen.findByRole("heading", { name: "Administração", level: 1 })).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: "admin", password: "admin" }),
     });
-    expect(sessionStorage.getItem("blueprint.auth.roles")).toBe(JSON.stringify(["platform admin"]));
-    expect(sessionStorage.getItem("blueprint.auth.role")).toBeNull();
+    expect(sessionStorage.getItem("racletty.auth.roles")).toBe(JSON.stringify(["platform admin"]));
+    expect(sessionStorage.getItem("racletty.auth.role")).toBeNull();
   });
 
   it("opens the dashboard after an employee logs in", async () => {
@@ -392,7 +392,7 @@ describe("login", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "The username or password is incorrect.",
     );
-    expect(screen.getByText("Sign in to blueprint")).toBeInTheDocument();
+    expect(screen.getByText("Sign in to racletty")).toBeInTheDocument();
   });
 
   it("shows a network error when the API cannot be reached", async () => {
@@ -402,14 +402,14 @@ describe("login", () => {
     await user.click(screen.getByRole("button", { name: "Sign in" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "We couldn't reach blueprint. Please try again.",
+      "We couldn't reach racletty. Please try again.",
     );
   });
 });
 
 describe("dashboard", () => {
   beforeEach(() => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["employee", "architect"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["employee", "architect"]));
     mockCompanyDashboard();
   });
 
@@ -478,19 +478,20 @@ describe("dashboard", () => {
     expect(grouped).toHaveAttribute("aria-pressed", "true");
     expect(await screen.findByRole("button", { name: /adicionou a mensagem 4/ })).toBeInTheDocument();
     expect(screen.getByLabelText("4 notificações não lidas de Casa do Vale")).toHaveTextContent("4");
-    expect(sessionStorage.getItem("blueprint.dashboard.notification-layout")).toBe("by-project");
+    expect(sessionStorage.getItem("racletty.dashboard.notification-layout")).toBe("by-project");
     unmount();
     renderApp("/dashboard");
     expect(screen.getByRole("button", { name: "Notificações agrupadas por projeto" })).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("shows the owner action and opens a project by its real id", async () => {
+  it("opens a project by its real id for an owner", async () => {
     vi.restoreAllMocks();
     mockCompanyDashboard("owner");
     const user = userEvent.setup();
     renderApp("/dashboard");
 
-    expect(await screen.findByRole("button", { name: /Criar projeto/ })).toBeInTheDocument();
+    await screen.findByText("Casa do Vale");
+    expect(screen.queryByRole("button", { name: /Criar projeto/ })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Abrir projeto Casa do Vale" }));
     expect(await screen.findByRole("heading", { name: "Casa do Vale", level: 1 })).toBeInTheDocument();
   });
@@ -506,7 +507,7 @@ describe("dashboard", () => {
 
   it("shows assigned architects instead of the client name on a client dashboard card", async () => {
     vi.restoreAllMocks();
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["client"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["client"]));
     mockClientDashboard();
     renderApp("/dashboard");
 
@@ -550,18 +551,18 @@ describe("dashboard", () => {
   });
 
   it("logs out and returns to the sign-in page", async () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["employee"]));
-    sessionStorage.setItem("blueprint.auth.role", "architect");
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["employee"]));
+    sessionStorage.setItem("racletty.auth.role", "architect");
     const fetchMock = vi.mocked(globalThis.fetch);
     const user = userEvent.setup();
     renderApp("/dashboard");
 
     await user.click(screen.getByRole("button", { name: "Terminar sessão" }));
 
-    expect(await screen.findByText("Sign in to blueprint")).toBeInTheDocument();
+    expect(await screen.findByText("Sign in to racletty")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("/api/auth/logout", { method: "POST" });
-    expect(sessionStorage.getItem("blueprint.auth.roles")).toBeNull();
-    expect(sessionStorage.getItem("blueprint.auth.role")).toBeNull();
+    expect(sessionStorage.getItem("racletty.auth.roles")).toBeNull();
+    expect(sessionStorage.getItem("racletty.auth.role")).toBeNull();
   });
 
   it("returns to sign-in when the active session is cleared", async () => {
@@ -570,13 +571,13 @@ describe("dashboard", () => {
     expect(screen.getByRole("heading", { name: "Bom dia, Ana" })).toBeInTheDocument();
     clearAuthenticatedRoles();
 
-    expect(await screen.findByText("Sign in to blueprint")).toBeInTheDocument();
+    expect(await screen.findByText("Sign in to racletty")).toBeInTheDocument();
   });
 });
 
 describe("mockup navigation", () => {
   it("shows the completed administration destination without a mock label to platform admins", () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["platform admin"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["platform admin"]));
     renderApp("/dashboard");
 
     expect(screen.queryByRole("button", { name: "Dashboard" })).not.toBeInTheDocument();
@@ -589,7 +590,7 @@ describe("mockup navigation", () => {
   });
 
   it("hides the profile button from platform admins on shared portal navigation", async () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["platform admin"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["platform admin"]));
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response("[]", {
         status: 200,
@@ -605,14 +606,14 @@ describe("mockup navigation", () => {
   });
 
   it("hides administration from users who are not platform admins", () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["employee", "architect"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["employee", "architect"]));
     renderApp("/dashboard");
 
     expect(screen.queryByRole("button", { name: "Administração" })).not.toBeInTheDocument();
   });
 
   it("hides company settings from clients and protects direct access", async () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["client"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["client"]));
     mockProfile("client");
     renderApp("/settings");
 
@@ -621,7 +622,7 @@ describe("mockup navigation", () => {
   });
 
   it("hides company settings from employees without a company", async () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["employee"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["employee"]));
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({
       ...profileResponse("employee"),
       companyId: null,
@@ -648,16 +649,16 @@ describe("mockup navigation", () => {
     ["/notifications", "Notificações"],
     ["/profile", "Perfil de colaboradora"],
   ])("renders %s", async (path, heading) => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["employee"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["employee"]));
     if (path === "/administration") {
-      sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["platform admin"]));
+      sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["platform admin"]));
     }
     if (path === "/profile") {
-      sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["employee", "architect"]));
+      sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["employee", "architect"]));
       mockProfile("employee", true);
     }
     if (path.startsWith("/settings")) {
-      sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["employee"]));
+      sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["employee"]));
       vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
         new Response(JSON.stringify(
           String(input) === "/api/company"
@@ -721,7 +722,7 @@ describe("mockup navigation", () => {
     [["employee", "architect"], "Perfil de colaboradora", "Ana Martins"],
     [["client"], "Perfil de cliente", "Marta Silva"],
   ])("renders the %s page for the authenticated roles", async (roles, heading, name) => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(roles));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(roles));
     mockProfile(roles.includes("client") ? "client" : "employee", roles.includes("architect"));
     renderApp("/profile");
 
@@ -730,7 +731,7 @@ describe("mockup navigation", () => {
   });
 
   it("keeps platform admins out of the client-facing profile route", () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["platform admin"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["platform admin"]));
     renderApp("/profile");
 
     expect(screen.getByRole("heading", { name: "Administração", level: 1 })).toBeInTheDocument();
@@ -738,7 +739,7 @@ describe("mockup navigation", () => {
   });
 
   it("does not show the architect role label in the navigation", async () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["employee", "architect"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["employee", "architect"]));
     mockProfile("employee", true);
     renderApp("/profile");
     await screen.findByRole("heading", { name: "Perfil de colaboradora", level: 1 });
@@ -748,14 +749,14 @@ describe("mockup navigation", () => {
   });
 
   it("does not route the removed company role to a company profile", () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["company"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["company"]));
     renderApp("/profile");
-    expect(screen.getByText("Sign in to blueprint")).toBeInTheDocument();
+    expect(screen.getByText("Sign in to racletty")).toBeInTheDocument();
     expect(screen.queryByText("Perfil de empresa")).not.toBeInTheDocument();
   });
 
   it("navigates from the dashboard to projects", async () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["employee"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["employee"]));
     const user = userEvent.setup();
     renderApp("/dashboard");
 

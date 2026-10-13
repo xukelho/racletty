@@ -4,12 +4,12 @@ using System.Net.Sockets;
 using System.Text;
 using Npgsql;
 
-namespace Blueprint.Api.IntegrationTests;
+namespace Racletty.Api.IntegrationTests;
 
 public sealed class PostgreSqlApiFixture : IAsyncLifetime
 {
     private readonly string _databaseName =
-        $"blueprint_test_{Guid.NewGuid():N}";
+        $"racletty_test_{Guid.NewGuid():N}";
     private Process? _apiProcess;
     private string _adminConnectionString = string.Empty;
     private readonly StringBuilder _apiOutput = new();
@@ -21,8 +21,8 @@ public sealed class PostgreSqlApiFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         _adminConnectionString =
-            Environment.GetEnvironmentVariable("BLUEPRINT_TEST_ADMIN_CONNECTION")
-            ?? "Host=localhost;Port=5837;Database=postgres;Username=blueprint;Password=blueprint_dev_password";
+            Environment.GetEnvironmentVariable("RACLETTY_TEST_ADMIN_CONNECTION")
+            ?? "Host=localhost;Port=5837;Database=postgres;Username=racletty;Password=racletty_dev_password";
 
         var databaseConnection = new NpgsqlConnectionStringBuilder(
             _adminConnectionString)

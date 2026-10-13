@@ -1,4 +1,4 @@
-namespace Blueprint.Api.Configuration;
+namespace Racletty.Api.Configuration;
 
 public static class ApplicationEnvironment
 {

@@ -1,3 +1,3 @@
-namespace Blueprint.Api.Contracts;
+namespace Racletty.Api.Contracts;
 
 public sealed record HealthResponse(string Status);

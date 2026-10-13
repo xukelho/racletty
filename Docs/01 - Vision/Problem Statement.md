@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the core problems Blueprint is designed to solve.
+This document defines the core problems Racletty is designed to solve.
 
 Rather than describing the product itself, this document focuses on the challenges currently faced by architects and their clients during the lifecycle of an architectural project.
 
@@ -209,7 +209,7 @@ Platforms such as GitHub combined version history, discussions, approvals, issue
 
 Architecture still lacks an equivalent platform focused on client collaboration.
 
-Blueprint aims to fill that gap.
+Racletty aims to fill that gap.
 
 ---
 
@@ -221,7 +221,7 @@ This creates unnecessary administrative work, increases the risk of misunderstan
 
 The industry needs a collaboration platform that centralises revisions, discussions, approvals, and project history without replacing the professional design software architects already use.
 
-Blueprint exists to solve that problem.
+Racletty exists to solve that problem.
 
 ---
 

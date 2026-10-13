@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Npgsql;
 
-namespace Blueprint.Api.IntegrationTests;
+namespace Racletty.Api.IntegrationTests;
 
 public sealed partial class ProjectIntegrationTests(PostgreSqlApiFixture fixture)
     : IClassFixture<PostgreSqlApiFixture>

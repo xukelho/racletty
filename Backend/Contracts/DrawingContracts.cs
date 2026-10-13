@@ -1,4 +1,4 @@
-namespace Blueprint.Api.Contracts;
+namespace Racletty.Api.Contracts;
 
 public sealed record DocumentPreviewResponse(string Kind, string SourceFormat);
 

@@ -117,11 +117,11 @@ export default function PortalShell({ children, wide = false }: PortalShellProps
 
       <aside className={`sidebar ${mobileNavOpen ? "sidebar--mobile-open" : ""}`}>
         <div className="sidebar__header">
-          <button className="sidebar-brand sidebar-brand--button" type="button" aria-label="blueprint dashboard" onClick={() => goTo("/dashboard")}>
+          <button className="sidebar-brand sidebar-brand--button" type="button" aria-label="racletty dashboard" onClick={() => goTo("/dashboard")}>
             <span className="sidebar-brand__mark" aria-hidden="true">
               <BrandLogoMark />
             </span>
-            <span className="sidebar-label sidebar-brand__name">blueprint</span>
+            <span className="sidebar-label sidebar-brand__name">racletty</span>
           </button>
           <button
             className="mobile-close-button"

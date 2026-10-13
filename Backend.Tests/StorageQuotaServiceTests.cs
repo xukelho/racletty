@@ -1,8 +1,8 @@
-using Blueprint.Api.Data;
-using Blueprint.Api.Services;
+using Racletty.Api.Data;
+using Racletty.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.IntegrationTests;
+namespace Racletty.Api.IntegrationTests;
 
 public sealed class StorageQuotaServiceTests
 {
@@ -80,6 +80,6 @@ public sealed class StorageQuotaServiceTests
         ExpectedLength = charge, QuotaChargeBytes = charge, Status = status, UploadExpiresAt = now.AddHours(1), CreatedAt = now, UpdatedAt = now
     };
 
-    private static BlueprintDbContext CreateDb() => new(new DbContextOptionsBuilder<BlueprintDbContext>()
+    private static RaclettyDbContext CreateDb() => new(new DbContextOptionsBuilder<RaclettyDbContext>()
         .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 }

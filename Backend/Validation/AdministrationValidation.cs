@@ -1,4 +1,4 @@
-namespace Blueprint.Api.Validation;
+namespace Racletty.Api.Validation;
 
 internal static class AdministrationValidation
 {

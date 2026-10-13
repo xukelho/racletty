@@ -1,4 +1,4 @@
-namespace Blueprint.Api.Storage;
+namespace Racletty.Api.Storage;
 
 public interface IObjectStore
 {

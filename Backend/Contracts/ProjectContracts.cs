@@ -1,4 +1,4 @@
-namespace Blueprint.Api.Contracts;
+namespace Racletty.Api.Contracts;
 
 public sealed record ProjectClientResponse(long Id, string DisplayName);
 public sealed record ProjectMemberResponse(long EmployeeId, string DisplayName, string Email);

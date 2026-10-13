@@ -1,4 +1,4 @@
-namespace Blueprint.Api.Contracts;
+namespace Racletty.Api.Contracts;
 
 public sealed record AdministrationErrorResponse(string Error);
 
@@ -32,7 +32,8 @@ public sealed record CreateEmployeeRequest(
     string Nif,
     string Email,
     string PhoneNumber,
-    string Address);
+    string Address,
+    string? CompanyRole);
 
 public sealed record UpdateEmployeeRequest(
     long CompanyId,
@@ -41,7 +42,8 @@ public sealed record UpdateEmployeeRequest(
     string Nif,
     string Email,
     string PhoneNumber,
-    string Address);
+    string Address,
+    string? CompanyRole);
 
 public sealed record EmployeeResponse(
     long Id,
@@ -52,7 +54,8 @@ public sealed record EmployeeResponse(
     string Nif,
     string Email,
     string PhoneNumber,
-    string Address);
+    string Address,
+    string CompanyRole);
 
 public sealed record CreateClientRequest(
     string Username,

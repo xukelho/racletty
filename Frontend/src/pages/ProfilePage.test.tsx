@@ -70,7 +70,7 @@ function profileSectionButton(name: string) {
 
 describe("editable profile", () => {
   it("hides client mock sections when the session environment is missing", async () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["client"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["client"]));
     vi.spyOn(globalThis, "fetch").mockImplementation(async () => jsonResponse(clientProfile));
     renderApp("/profile");
 
@@ -82,8 +82,8 @@ describe("editable profile", () => {
   });
 
   it("shows client mock sections with their Mock label in development", async () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["client"]));
-    sessionStorage.setItem("blueprint.application.environment", "development");
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["client"]));
+    sessionStorage.setItem("racletty.application.environment", "development");
     vi.spyOn(globalThis, "fetch").mockImplementation(async () => jsonResponse(clientProfile));
     const user = userEvent.setup();
     renderApp("/profile");
@@ -99,8 +99,8 @@ describe("editable profile", () => {
   });
 
   it("shows but blocks client mock sections in testing", async () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["client"]));
-    sessionStorage.setItem("blueprint.application.environment", "testing");
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["client"]));
+    sessionStorage.setItem("racletty.application.environment", "testing");
     vi.spyOn(globalThis, "fetch").mockImplementation(async () => jsonResponse(clientProfile));
     renderApp("/profile");
 
@@ -112,7 +112,7 @@ describe("editable profile", () => {
   });
 
   it("previews and saves an account theme preference", async () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["employee"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["employee"]));
     let submitted: Record<string, unknown> | null = null;
     vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
       if (String(input) === "/api/notifications/summary") {
@@ -132,23 +132,21 @@ describe("editable profile", () => {
     expect(screen.getByRole("radio", { name: "Claro" })).toBeChecked();
     await user.click(screen.getByRole("radio", { name: "Escuro" }));
 
-    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+    await waitFor(() => expect(document.documentElement).toHaveAttribute("data-theme", "dark"));
     await waitFor(() => expect(submitted).toEqual({ themePreference: "dark" }));
-    expect(sessionStorage.getItem("blueprint.theme.preference")).toBe("dark");
+    expect(sessionStorage.getItem("racletty.theme.preference")).toBe("dark");
     expect(vi.mocked(globalThis.fetch)).toHaveBeenCalledWith(
       "/api/profile/theme",
       expect.objectContaining({ method: "PUT" }),
     );
-    await user.click(screen.getByRole("button", { name: "Guardar alterações" }));
-
     expect(await screen.findByRole("button", { name: /Guardado/ })).toBeInTheDocument();
     expect(submitted).toMatchObject({ themePreference: "dark" });
-    expect(sessionStorage.getItem("blueprint.theme.preference")).toBe("dark");
+    expect(sessionStorage.getItem("racletty.theme.preference")).toBe("dark");
   });
 
   it("loads and saves employee data, associations, and navigation identity", async () => {
     sessionStorage.setItem(
-      "blueprint.auth.roles",
+      "racletty.auth.roles",
       JSON.stringify(["employee", "architect"]),
     );
     let submitted: Record<string, unknown> | null = null;
@@ -202,10 +200,13 @@ describe("editable profile", () => {
   });
 
   it("preserves entered values and displays backend field errors", async () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["client"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["client"]));
     vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
       if (String(input) === "/api/notifications/summary") {
         return jsonResponse({ unreadCount: 0, pendingInvitationCount: 0, total: 0 });
+      }
+      if (String(input) === "/api/profile/theme" && init?.method === "PUT") {
+        return jsonResponse({ ...clientProfile, themePreference: "dark" });
       }
       if (init?.method === "PUT") {
         return jsonResponse({
@@ -225,7 +226,7 @@ describe("editable profile", () => {
     expect(screen.getByText("Atelier Sul")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Aparência" }));
     await user.click(screen.getByRole("radio", { name: "Escuro" }));
-    expect(document.documentElement.dataset.theme).toBe("dark");
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
     await user.click(screen.getByRole("button", { name: "Dados pessoais" }));
     await user.clear(screen.getByLabelText("Nome de utilizador"));
     await user.click(screen.getByRole("button", { name: "Guardar alterações" }));
@@ -237,11 +238,11 @@ describe("editable profile", () => {
     );
     expect(document.documentElement.dataset.theme).toBe("dark");
     await user.click(screen.getByRole("button", { name: "Dashboard" }));
-    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("light"));
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
   });
 
   it("uses the real client identity button to reach the client page from dashboard", async () => {
-    sessionStorage.setItem("blueprint.auth.roles", JSON.stringify(["client"]));
+    sessionStorage.setItem("racletty.auth.roles", JSON.stringify(["client"]));
     vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
       jsonResponse(String(input) === "/api/profile" ? clientProfile : []),
     );

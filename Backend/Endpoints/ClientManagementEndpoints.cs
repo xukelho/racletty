@@ -1,10 +1,10 @@
 using System.Security.Claims;
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Services;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class ClientManagementEndpoints
 {
@@ -19,7 +19,7 @@ public static class ClientManagementEndpoints
         return endpoints;
     }
 
-    private static async Task<IResult> List(ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> List(ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct); if (access is null) return TypedResults.NotFound();
         var results = await db.CompanyClients.AsNoTracking()
@@ -34,7 +34,7 @@ public static class ClientManagementEndpoints
         return TypedResults.Ok(results);
     }
 
-    private static async Task<IResult> Get(long id, ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> Get(long id, ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct); if (access is null) return TypedResults.NotFound();
         var membership = await db.CompanyClients.AsNoTracking()
@@ -46,7 +46,7 @@ public static class ClientManagementEndpoints
         return TypedResults.Ok(new ClientDetailResponse(client.Id, client.DisplayName, client.FullName, client.Nif, client.Email, client.PhoneNumber, client.Address, membership.InternalNotes, projects, access.IsOwner));
     }
 
-    private static async Task<IResult> UpdateNotes(long id, UpdateClientNotesRequest? request, ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IResult> UpdateNotes(long id, UpdateClientNotesRequest? request, ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct); if (access is null) return TypedResults.NotFound();
         if (request is null || request.InternalNotes is null || request.InternalNotes.Length > 4000) return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["internalNotes"] = ["Internal notes must contain at most 4000 characters."] });
@@ -56,7 +56,7 @@ public static class ClientManagementEndpoints
         membership.InternalNotes = request.InternalNotes.Trim(); await db.SaveChangesAsync(ct); return TypedResults.NoContent();
     }
 
-    private static async Task<IResult> AssociateProject(long id, long projectId, ClaimsPrincipal principal, BlueprintDbContext db, IProjectNotificationService notifications, CancellationToken ct)
+    private static async Task<IResult> AssociateProject(long id, long projectId, ClaimsPrincipal principal, RaclettyDbContext db, IProjectNotificationService notifications, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct); if (access is null || !access.IsOwner) return TypedResults.NotFound();
         if (!await db.CompanyClients.AnyAsync(x => x.ClientId == id && x.CompanyId == access.CompanyId, ct)) return TypedResults.NotFound();
@@ -79,7 +79,7 @@ public static class ClientManagementEndpoints
         await transaction.CommitAsync(ct); return TypedResults.NoContent();
     }
 
-    private static async Task<IResult> RemoveProject(long id, long projectId, ClaimsPrincipal principal, BlueprintDbContext db, IProjectNotificationService notifications, CancellationToken ct)
+    private static async Task<IResult> RemoveProject(long id, long projectId, ClaimsPrincipal principal, RaclettyDbContext db, IProjectNotificationService notifications, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct); if (access is null || !access.IsOwner) return TypedResults.NotFound();
         await using var transaction = await db.Database.BeginTransactionAsync(ct);

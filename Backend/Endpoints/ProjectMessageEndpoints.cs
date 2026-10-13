@@ -1,10 +1,10 @@
 using System.Security.Claims;
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Services;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class ProjectMessageEndpoints
 {
@@ -27,7 +27,7 @@ public static class ProjectMessageEndpoints
         long? afterId,
         int? limit,
         ClaimsPrincipal principal,
-        BlueprintDbContext db,
+        RaclettyDbContext db,
         CancellationToken ct)
     {
         if (beforeId is not null && afterId is not null)
@@ -64,7 +64,7 @@ public static class ProjectMessageEndpoints
         long projectId,
         CreateProjectMessageRequest? request,
         ClaimsPrincipal principal,
-        BlueprintDbContext db,
+        RaclettyDbContext db,
         IProjectNotificationService notifications,
         CancellationToken ct)
     {
@@ -102,13 +102,13 @@ public static class ProjectMessageEndpoints
         return TypedResults.Created($"/api/projects/{projectId}/messages/{message.Id}", ToResponse(message, userId));
     }
 
-    private static async Task<bool> CanAccessProject(long projectId, ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<bool> CanAccessProject(long projectId, ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var visibleProjects = await VisibleProjects(principal, db, ct);
         return await visibleProjects.AnyAsync(project => project.Id == projectId, ct);
     }
 
-    private static async Task<IQueryable<Project>> VisibleProjects(ClaimsPrincipal principal, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<IQueryable<Project>> VisibleProjects(ClaimsPrincipal principal, RaclettyDbContext db, CancellationToken ct)
     {
         var access = await Access.ForUser(principal, db, ct);
         if (access is not null) return ProjectEndpoints.VisibleProjects(access, db);
@@ -116,7 +116,7 @@ public static class ProjectMessageEndpoints
         return clientId is long id ? ProjectEndpoints.VisibleClientProjects(id, db) : db.Projects.Where(_ => false);
     }
 
-    private static async Task<string?> CurrentDisplayName(long userId, BlueprintDbContext db, CancellationToken ct)
+    private static async Task<string?> CurrentDisplayName(long userId, RaclettyDbContext db, CancellationToken ct)
     {
         var employeeName = await db.Employees.AsNoTracking().Where(employee => employee.UserId == userId && employee.User!.IsActive)
             .Select(employee => employee.DisplayName).SingleOrDefaultAsync(ct);

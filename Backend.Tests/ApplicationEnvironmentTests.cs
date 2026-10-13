@@ -1,6 +1,6 @@
-using Blueprint.Api.Configuration;
+using Racletty.Api.Configuration;
 
-namespace Blueprint.Api.IntegrationTests;
+namespace Racletty.Api.IntegrationTests;
 
 public sealed class ApplicationEnvironmentTests
 {

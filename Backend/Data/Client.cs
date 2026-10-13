@@ -1,4 +1,4 @@
-namespace Blueprint.Api.Data;
+namespace Racletty.Api.Data;
 
 public sealed class Client
 {

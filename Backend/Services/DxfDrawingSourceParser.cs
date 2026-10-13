@@ -1,8 +1,8 @@
 using ACadSharp.Entities;
 using ACadSharp.IO;
-using Blueprint.Api.Contracts;
+using Racletty.Api.Contracts;
 
-namespace Blueprint.Api.Services;
+namespace Racletty.Api.Services;
 
 /// <summary>Converts the portable subset of a DXF document to the viewer's format-neutral drawing contract.</summary>
 public sealed class DxfDrawingSourceParser : IDrawingSourceParser

@@ -1,10 +1,10 @@
-using Blueprint.Api.Contracts;
-using Blueprint.Api.Data;
-using Blueprint.Api.Validation;
+using Racletty.Api.Contracts;
+using Racletty.Api.Data;
+using Racletty.Api.Validation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Blueprint.Api.Endpoints;
+namespace Racletty.Api.Endpoints;
 
 public static class AdministrationEndpoints
 {
@@ -154,7 +154,7 @@ public static class AdministrationEndpoints
     }
 
     private static async Task<IResult> GetRoles(
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var roles = await dbContext.Roles
@@ -166,7 +166,7 @@ public static class AdministrationEndpoints
     }
 
     private static async Task<IResult> GetUsers(
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var users = await UserQuery(dbContext)
@@ -177,7 +177,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> GetUser(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var user = await UserQuery(dbContext)
@@ -187,7 +187,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> CreateUser(
         CreateUserRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = ValidateCredentials(request?.Username, request?.Password, true);
@@ -215,7 +215,7 @@ public static class AdministrationEndpoints
     private static async Task<IResult> UpdateUser(
         long id,
         UpdateUserRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = ValidateCredentials(request?.Username, request?.Password, false);
@@ -248,14 +248,14 @@ public static class AdministrationEndpoints
         }
 
         var removedRoles = user.UserRoles
-            .Where(candidate => !roleIds.Contains(candidate.RoleId))
+            .Where(candidate => candidate.RoleId != RoleIds.CompanyOwner && !roleIds.Contains(candidate.RoleId))
             .ToArray();
         foreach (var removedRole in removedRoles)
         {
             user.UserRoles.Remove(removedRole);
             dbContext.UserRoles.Remove(removedRole);
         }
-        foreach (var roleId in roleIds.Where(
+        foreach (var roleId in roleIds.Where(roleId => roleId != RoleIds.CompanyOwner).Where(
                      roleId => user.UserRoles.All(
                          candidate => candidate.RoleId != roleId)))
         {
@@ -280,7 +280,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> DeleteUser(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var user = await dbContext.Users.FindAsync([id], cancellationToken);
@@ -295,10 +295,11 @@ public static class AdministrationEndpoints
     }
 
     private static async Task<IResult> GetEmployees(
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var employees = await dbContext.Employees.AsNoTracking()
+            .Include(candidate => candidate.CompanyEmployee)
             .OrderBy(candidate => candidate.Id)
             .Select(candidate => ToResponse(candidate))
             .ToListAsync(cancellationToken);
@@ -307,10 +308,11 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> GetEmployee(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var employee = await dbContext.Employees.AsNoTracking()
+            .Include(candidate => candidate.CompanyEmployee)
             .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
         return employee is null
             ? TypedResults.NotFound()
@@ -319,12 +321,13 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> CreateEmployee(
         CreateEmployeeRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = ValidateCredentials(request?.Username, request?.Password, true);
         ValidateProfile(request, errors);
         ValidateEmployeeRoles(request?.RoleIds, errors);
+        ValidateCompanyRole(request?.CompanyRole, errors);
         if (request is not null && request.CompanyId <= 0)
         {
             errors["companyId"] = ["Company is required."];
@@ -350,6 +353,11 @@ public static class AdministrationEndpoints
 
         var user = NewUser(normalizedUsername, validRequest.Password);
         user.UserRoles.Add(new UserRole { RoleId = RoleIds.Employee });
+        var companyRole = NormalizeCompanyRole(validRequest.CompanyRole);
+        if (companyRole == CompanyRoles.Owner)
+        {
+            user.UserRoles.Add(new UserRole { RoleId = RoleIds.CompanyOwner });
+        }
         if (validRequest.RoleIds.Contains(RoleIds.Architect))
         {
             user.UserRoles.Add(new UserRole { RoleId = RoleIds.Architect });
@@ -370,7 +378,7 @@ public static class AdministrationEndpoints
         {
             CompanyId = validRequest.CompanyId,
             Employee = employee,
-            CompanyRole = CompanyRoles.Employee,
+            CompanyRole = companyRole,
             IsArchitect = validRequest.RoleIds.Contains(RoleIds.Architect)
         });
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -383,11 +391,12 @@ public static class AdministrationEndpoints
     private static async Task<IResult> UpdateEmployee(
         long id,
         UpdateEmployeeRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = new Dictionary<string, string[]>();
         ValidateProfile(request, errors);
+        ValidateCompanyRole(request?.CompanyRole, errors);
         if (request is not null && request.CompanyId <= 0)
         {
             errors["companyId"] = ["Company is required."];
@@ -398,20 +407,47 @@ public static class AdministrationEndpoints
         }
 
         var employee = await dbContext.Employees
+            .Include(candidate => candidate.User)
+                .ThenInclude(candidate => candidate!.UserRoles)
+            .Include(candidate => candidate.CompanyEmployee)
             .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
         if (employee is null)
         {
             return TypedResults.NotFound();
         }
 
-        Apply(employee, request!);
+        var validRequest = request!;
+        Apply(employee, validRequest);
+        var membership = employee.CompanyEmployee!;
+        if (validRequest.CompanyRole is not null)
+        {
+            var companyRole = NormalizeCompanyRole(validRequest.CompanyRole);
+            if (membership.CompanyRole == CompanyRoles.Owner && companyRole != CompanyRoles.Owner &&
+                !await HasAnotherOwner(membership.CompanyId, employee.Id, dbContext, cancellationToken))
+            {
+                return Conflict("A company must retain an active owner.");
+            }
+            if (membership.CompanyRole != companyRole)
+            {
+                var ownerRole = employee.User!.UserRoles.SingleOrDefault(candidate => candidate.RoleId == RoleIds.CompanyOwner);
+                if (companyRole == CompanyRoles.Owner && ownerRole is null)
+                {
+                    employee.User.UserRoles.Add(new UserRole { RoleId = RoleIds.CompanyOwner });
+                }
+                else if (companyRole != CompanyRoles.Owner && ownerRole is not null)
+                {
+                    dbContext.UserRoles.Remove(ownerRole);
+                }
+                membership.CompanyRole = companyRole;
+            }
+        }
         await dbContext.SaveChangesAsync(cancellationToken);
         return TypedResults.Ok(ToResponse(employee));
     }
 
     private static async Task<IResult> DeleteEmployee(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var employee = await dbContext.Employees
@@ -428,7 +464,7 @@ public static class AdministrationEndpoints
     }
 
     private static async Task<IResult> GetClients(
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var clients = await dbContext.Clients.AsNoTracking()
@@ -441,7 +477,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> GetClient(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var client = await dbContext.Clients.AsNoTracking()
@@ -454,7 +490,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> CreateClient(
         CreateClientRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = ValidateCredentials(request?.Username, request?.Password, true);
@@ -530,7 +566,7 @@ public static class AdministrationEndpoints
     private static async Task<IResult> UpdateClient(
         long id,
         UpdateClientRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = new Dictionary<string, string[]>();
@@ -606,7 +642,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> DeleteClient(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var client = await dbContext.Clients
@@ -623,7 +659,7 @@ public static class AdministrationEndpoints
     }
 
     private static async Task<IResult> GetCompanies(
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken,
         bool includeInactive = false)
     {
@@ -642,7 +678,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> GetCompany(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var company = await dbContext.Companies.AsNoTracking()
@@ -654,7 +690,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> CreateCompany(
         CreateCompanyRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = ValidateCompany(request);
@@ -698,7 +734,7 @@ public static class AdministrationEndpoints
     private static async Task<IResult> UpdateCompany(
         long id,
         UpdateCompanyRequest? request,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = ValidateCompany(request);
@@ -734,7 +770,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult> DeleteCompany(
         long id,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var company = await dbContext.Companies
@@ -755,7 +791,7 @@ public static class AdministrationEndpoints
         return TypedResults.NoContent();
     }
 
-    private static IQueryable<User> UserQuery(BlueprintDbContext dbContext) =>
+    private static IQueryable<User> UserQuery(RaclettyDbContext dbContext) =>
         dbContext.Users
             .AsNoTracking()
             .Include(candidate => candidate.UserRoles)
@@ -763,7 +799,7 @@ public static class AdministrationEndpoints
 
     private static async Task LoadUserRoles(
         User user,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         await dbContext.Entry(user)
@@ -793,7 +829,7 @@ public static class AdministrationEndpoints
     private static async Task<bool> UsernameExists(
         string username,
         long? excludedUserId,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken) =>
         await dbContext.Users.AnyAsync(
             candidate => candidate.Username == username &&
@@ -802,7 +838,7 @@ public static class AdministrationEndpoints
 
     private static bool RolesMatchProfile(User user, IReadOnlyCollection<long> roleIds)
     {
-        var roles = roleIds.Order().ToArray();
+        var roles = roleIds.Where(roleId => roleId != RoleIds.CompanyOwner).Order().ToArray();
         if (user.Employee is not null)
         {
             return roles.SequenceEqual([RoleIds.Employee]) ||
@@ -818,7 +854,7 @@ public static class AdministrationEndpoints
 
     private static async Task<IResult?> RequireActiveCompany(
         long companyId,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var company = await dbContext.Companies.AsNoTracking()
@@ -837,6 +873,32 @@ public static class AdministrationEndpoints
 
         return null;
     }
+
+    private static string NormalizeCompanyRole(string? companyRole)
+    {
+        if (companyRole is null)
+        {
+            return CompanyRoles.Employee;
+        }
+        return companyRole.Trim().ToLowerInvariant() switch
+        {
+            CompanyRoles.Owner => CompanyRoles.Owner,
+            CompanyRoles.Employee => CompanyRoles.Employee,
+            _ => throw new ArgumentException("Company role must be owner or employee.")
+        };
+    }
+
+    private static async Task<bool> HasAnotherOwner(
+        long companyId,
+        long employeeId,
+        RaclettyDbContext dbContext,
+        CancellationToken cancellationToken) =>
+        await dbContext.CompanyEmployees.AnyAsync(candidate =>
+            candidate.CompanyId == companyId &&
+            candidate.EmployeeId != employeeId &&
+            candidate.CompanyRole == CompanyRoles.Owner &&
+            candidate.Employee!.User!.IsActive,
+            cancellationToken);
 
     private static Dictionary<string, string[]> ValidateCredentials(
         string? username,
@@ -893,6 +955,18 @@ public static class AdministrationEndpoints
             errors["roleIds"] = [
                 "Employees require the employee role and may additionally have the architect role."
             ];
+        }
+    }
+
+    private static void ValidateCompanyRole(
+        string? companyRole,
+        Dictionary<string, string[]> errors)
+    {
+        if (companyRole is not null &&
+            !companyRole.Trim().Equals(CompanyRoles.Owner, StringComparison.OrdinalIgnoreCase) &&
+            !companyRole.Trim().Equals(CompanyRoles.Employee, StringComparison.OrdinalIgnoreCase))
+        {
+            errors["companyRole"] = ["Company role must be owner or employee."];
         }
     }
 
@@ -1027,7 +1101,8 @@ public static class AdministrationEndpoints
             employee.Nif ?? string.Empty,
             employee.Email ?? string.Empty,
             employee.PhoneNumber ?? string.Empty,
-            employee.Address ?? string.Empty);
+            employee.Address ?? string.Empty,
+            employee.CompanyEmployee?.CompanyRole ?? CompanyRoles.Employee);
 
     private static ClientResponse ToResponse(Client client) =>
         new(
@@ -1044,7 +1119,7 @@ public static class AdministrationEndpoints
     private static async Task RemoveMatchingInvitations(
         IReadOnlyCollection<long> companyIds,
         string email,
-        BlueprintDbContext dbContext,
+        RaclettyDbContext dbContext,
         CancellationToken cancellationToken)
     {
         if (companyIds.Count == 0)

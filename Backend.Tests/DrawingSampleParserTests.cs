@@ -1,6 +1,6 @@
-using Blueprint.Api.Services;
+using Racletty.Api.Services;
 
-namespace Blueprint.Api.IntegrationTests;
+namespace Racletty.Api.IntegrationTests;
 
 public sealed class DrawingSampleParserTests
 {
