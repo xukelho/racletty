@@ -225,7 +225,7 @@ export function CompanyClientDetailPage() {
             <label className="mock-field mock-field--wide">Morada<input readOnly value={client.address} /></label>
             <label className="mock-field mock-field--wide">Notas internas<textarea value={notes} maxLength={4000} onChange={(event) => { setNotes(event.target.value); setNotice(""); }} /></label>
           </div></section>
-          <section className="mock-surface">
+          <section className="mock-surface mock-client-project-section">
             <div className="mock-section-title"><div><h2>Projetos associados</h2><p>{client.projects.length} {client.projects.length === 1 ? "projeto com acesso" : "projetos com acesso"}.</p></div></div>
             {client.canManageProjects && <p className="mock-client-project-help">Seleciona um projeto para atribuir ou remover o acesso deste cliente.</p>}
             {projectCards.length ? <div className="mock-client-project-grid">

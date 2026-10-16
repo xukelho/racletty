@@ -1,0 +1,150 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap");
+
+:root {
+  --ww-page: #f4f3e9;
+  --ww-panel: #fffdf7;
+  --ww-raised: #f9f7ec;
+  --ww-soft: #e9ecdf;
+  --ww-ink: #27433c;
+  --ww-muted: #5d7067;
+  --ww-border: #cddacf;
+  --ww-sage: #3d7164;
+  --ww-sage-dark: #305d52;
+  --ww-sage-soft: #dcebe2;
+  --ww-shadow: 5px 6px 0 rgb(62 109 91 / 10%), 0 16px 30px rgb(48 79 64 / 6%);
+  --forest: var(--ww-sage);
+  --forest-dark: var(--ww-sage-dark);
+  --cream: var(--ww-page);
+  --coral: var(--ww-sage);
+  font-family: "Nunito", Arial, sans-serif;
+  color: var(--ww-ink);
+  background: var(--ww-page);
+}
+
+body { background: var(--ww-page); }
+button, input, textarea, select { font-family: "Nunito", Arial, sans-serif; }
+button, a, input, textarea, select { transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+button:active:not(:disabled) { transform: scale(.985); }
+:is(button, input, textarea, select, a):focus-visible { outline: 3px solid var(--ww-sage); outline-offset: 3px; }
+
+.frontend-switcher { position: fixed; z-index: 100; top: 14px; right: 16px; display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 7px 12px; color: #fff; background: #315e53; border: 1px solid #315e53; border-radius: 999px; box-shadow: 0 5px 0 rgb(27 67 54 / 17%), 0 12px 28px rgb(19 56 45 / 15%); font: 800 12px/1 "Nunito", Arial, sans-serif; text-decoration: none; white-space: nowrap; }
+.frontend-switcher:hover { color: #fff; background: #244e43; transform: translateY(-2px); }
+.frontend-switcher span { color: #f1c69c; font-size: 17px; }
+
+/* Welcome */
+.login-page { color: var(--ww-ink); }
+.brand-panel { color: var(--ww-ink); background: var(--ww-soft); }
+.brand-panel__grid { opacity: 1; background-image: radial-gradient(circle, rgb(61 113 100 / 16%) 1.1px, transparent 1.6px); background-size: 21px 21px; mask-image: linear-gradient(to bottom right, #000 20%, transparent 100%); }
+.brand-panel::after { border-color: rgb(61 113 100 / 15%); box-shadow: 0 0 0 70px rgb(61 113 100 / 3%), 0 0 0 140px rgb(61 113 100 / 2%); }
+.brand__mark, .sidebar-brand__mark { background: var(--ww-sage-soft); border-radius: 14px; }
+.brand__name, .brand-copy h1, .login-card__heading h2 { color: var(--ww-ink); font-family: "Nunito", Arial, sans-serif; font-weight: 900; }
+.brand-copy .eyebrow, .eyebrow { color: var(--ww-sage); }
+.brand-copy__summary, .brand-panel__footer { color: var(--ww-muted); }
+.project-card { background: var(--ww-panel); border-color: var(--ww-border); border-radius: 25px; box-shadow: var(--ww-shadow); }
+.drawing { background-color: #eaf0e6; background-image: linear-gradient(rgb(61 113 100 / 10%) 1px, transparent 1px), linear-gradient(90deg, rgb(61 113 100 / 10%) 1px, transparent 1px); border-color: var(--ww-border); border-radius: 11px; }
+.form-panel { background: var(--ww-page); }
+.login-card__heading > p:last-child, .support-copy { color: var(--ww-muted); }
+.field label { color: var(--ww-ink); }
+.input-wrap { color: var(--ww-ink); background: var(--ww-panel); border-color: var(--ww-border); border-radius: 17px; }
+.input-wrap input { color: var(--ww-ink); }
+.input-wrap:focus-within { border-color: var(--ww-sage); box-shadow: 0 0 0 3px rgb(61 113 100 / 14%); }
+.submit-button { background: var(--ww-sage); border-radius: 17px; }
+.submit-button:hover { background: var(--ww-sage-dark); }
+.quick-login { border-color: var(--ww-border); }
+.quick-login__heading h3 { color: var(--ww-ink); font-family: "Nunito", Arial, sans-serif; }
+.quick-login__actions button { color: var(--ww-sage-dark); background: var(--ww-panel); border-color: var(--ww-border); border-radius: 13px; }
+.quick-login__actions button:hover { background: var(--ww-sage); }
+.workshop-mascot { pointer-events: none; position: absolute; z-index: 2; color: var(--ww-sage); }
+.workshop-mascot .lab-mascot { display: block; width: 136px; height: 136px; filter: drop-shadow(0 10px 10px rgb(61 113 100 / 12%)); }
+.workshop-mascot .lab-mascot__body { fill: #ffe7b5; stroke: currentColor; }
+.workshop-mascot .lab-mascot__shadow { stroke: #d88b69; }
+.workshop-welcome-scene { position: relative; width: min(480px, 100%); min-height: 245px; display: flex; align-items: center; margin-left: auto; }
+.workshop-welcome-scene .project-card { width: 77%; margin-left: 0; }
+.workshop-mascot--welcome { right: -4%; bottom: -11px; animation: ww-hello .65s both; }
+.workshop-mascot--welcome .lab-mascot { width: 175px; height: 175px; }
+
+/* Navigation and shared workspace */
+.app-shell { --theme-page: var(--ww-page); --theme-sidebar: var(--ww-panel); --theme-surface: var(--ww-panel); --theme-surface-raised: var(--ww-raised); --theme-surface-muted: var(--ww-soft); --theme-accent-soft: var(--ww-sage-soft); --theme-text: var(--ww-ink); --theme-text-secondary: var(--ww-muted); --theme-text-muted: var(--ww-muted); --theme-border: var(--ww-border); --theme-border-strong: #b9cdbd; --theme-accent: var(--ww-sage); --theme-accent-strong: var(--ww-sage-dark); font-family: "Nunito", Arial, sans-serif; }
+.app-shell::before { background-image: radial-gradient(circle, rgb(61 113 100 / 11%) 1px, transparent 1.6px); background-size: 20px 20px; opacity: 1; }
+.sidebar { background: var(--ww-panel); border-color: var(--ww-border); }
+.sidebar-brand__name, .atelier-context strong, .user-menu__copy strong { color: var(--ww-ink); font-family: "Nunito", Arial, sans-serif; }
+.atelier-context { background: var(--ww-raised); border-color: var(--ww-border); border-radius: 17px; }
+.atelier-context__icon { color: var(--ww-sage); background: var(--ww-panel); border-color: var(--ww-border); border-radius: 12px; }
+.nav-item, .user-menu, .sidebar-toggle { color: var(--ww-muted); border-radius: 14px; }
+.nav-item:hover, .user-menu:hover, .sidebar-toggle:hover { color: var(--ww-ink); background: var(--ww-soft); }
+.nav-item--active { color: var(--ww-sage-dark); background: var(--ww-sage-soft); font-weight: 800; }
+.nav-item--active::before { background: var(--ww-sage); }
+.user-avatar { background: var(--ww-sage); }
+.dashboard__inner { padding-top: 34px; }
+.dashboard :is(h1, h2, h3), .mock-page-header h1, .admin-header h1 { color: var(--ww-ink); font-family: "Nunito", Arial, sans-serif; font-weight: 800; }
+.dashboard :is(p, small) { color: var(--ww-muted); }
+.dashboard :is(.primary-action, .secondary-action, .mock-heading-action, .mock-icon-button, .mock-project-menu-button, .notifications-toolbar button, .dashboard-attention__actions button) { border-radius: 14px; }
+.dashboard .primary-action { color: #fff; background: var(--ww-sage); border-color: var(--ww-sage); }
+.dashboard .primary-action:hover { background: var(--ww-sage-dark); border-color: var(--ww-sage-dark); }
+.dashboard .secondary-action { color: var(--ww-sage-dark); background: var(--ww-panel); border-color: var(--ww-border); }
+.dashboard :is(input, textarea, select) { color: var(--ww-ink); background: var(--ww-panel); border-color: var(--ww-border); border-radius: 13px; }
+.dashboard :is(.mock-search, .mock-help-search) { background: var(--ww-panel); border-color: var(--ww-border); border-radius: 16px; }
+.dashboard :is(.mock-search, .mock-help-search) input { background: transparent; }
+.dashboard :is(.empty-state, .mock-project-card, .project-card, .mock-client-card, .admin-confirm-dialog, .notification-card, .dashboard-project-notifications) { background: var(--ww-panel); border-color: var(--ww-border); border-radius: 23px; box-shadow: var(--ww-shadow); }
+.dashboard .mock-project-card--dashboard { overflow: hidden; }
+.dashboard .mock-project-card--dashboard .mock-project-preview { border-radius: 0; }
+.dashboard .mock-client-detail-grid .mock-form-column > .mock-surface:not(.mock-client-project-section) { background: var(--ww-panel); border-color: var(--ww-border); border-radius: 23px; box-shadow: var(--ww-shadow); }
+.dashboard .mock-collapsible { background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+.dashboard .mock-collapsible + .mock-collapsible { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--ww-border); }
+.dashboard .mock-form-column > .mock-client-project-section { padding: 20px 0 0; background: transparent; border: 0; border-top: 1px solid var(--ww-border); border-radius: 0; box-shadow: none; }
+.dashboard .mock-client-card--pending:hover { transform: none; border-color: var(--ww-border); }
+.dashboard button.mock-client-card:is(:hover, :focus-visible) { border-color: var(--ww-sage); transform: translateY(-2px); }
+.dashboard .dashboard-project-row { background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+.dashboard .admin-crud { background: var(--ww-panel); border-color: var(--ww-border); border-radius: 23px; box-shadow: var(--ww-shadow); }
+.dashboard .admin-master { background: var(--ww-raised); border-color: var(--ww-border); border-radius: 0; box-shadow: none; }
+.dashboard .admin-detail { background: var(--ww-panel); border-radius: 0; box-shadow: none; }
+.dashboard .admin-master > header > div { display: grid; gap: 3px; }
+.dashboard .admin-master > header, .dashboard .admin-detail__header { border-color: var(--ww-border); }
+.dashboard .admin-record { border-color: var(--ww-border); }
+.dashboard .admin-record:hover, .dashboard .admin-record.is-selected { background: var(--ww-panel); }
+.dashboard .admin-record.is-selected { box-shadow: inset 3px 0 var(--ww-sage); }
+.dashboard .admin-record__avatar { background: var(--ww-sage); }
+.workshop-collection-heading { display: flex; align-items: center; gap: 11px; margin-bottom: 17px; }
+.workshop-collection-heading button { width: 38px; height: 38px; flex: 0 0 38px; display: grid; place-items: center; color: var(--ww-sage-dark); background: var(--ww-panel); border: 1px solid var(--ww-border); border-radius: 12px; box-shadow: 2px 3px 0 rgb(62 109 91 / 10%); }
+.workshop-collection-heading button:hover { background: var(--ww-sage-soft); border-color: var(--ww-sage); }
+.workshop-collection-heading button .is-collapsed { transform: rotate(-90deg); }
+.workshop-collection-heading h2 { margin: 0; font-size: 20px; line-height: 1.25; }
+.workshop-collection-heading small { min-width: 26px; padding: 3px 8px; color: var(--ww-sage-dark); background: var(--ww-sage-soft); border-radius: 999px; font-weight: 800; text-align: center; }
+.dashboard :is(.mock-plan, .mock-project-preview, .project-preview) { background-color: #e9efe5; border-color: var(--ww-border); background-image: linear-gradient(rgb(61 113 100 / 7%) 1px, transparent 1px), linear-gradient(90deg, rgb(61 113 100 / 7%) 1px, transparent 1px); background-size: 16px 16px; }
+.dashboard :is(.mock-project-card, .project-card, .notification-card):hover { border-color: var(--ww-sage); transform: translateY(-2px); }
+.dashboard :is(.mock-project-title strong, .project-card__title-row strong, .mock-section-heading strong, .section-heading h2, .admin-detail__header h2) { color: var(--ww-ink); font-family: "Nunito", Arial, sans-serif; font-weight: 800; }
+.dashboard :is(.mock-status--info, .mock-status--success, .mock-project-code, .project-card__meta span:last-child, .admin-role-badge, .notification-card.is-unread) { color: var(--ww-sage-dark); background: var(--ww-sage-soft); border-color: var(--ww-border); }
+.dashboard :is(.mock-status--warning, .mock-project-notice--success) { border-radius: 999px; }
+.dashboard .notification-card__icon { color: var(--ww-sage); background: var(--ww-sage-soft); }
+.dashboard .notification-card__dot { background: var(--ww-sage); }
+.dashboard .notifications-toolbar button.is-active { color: var(--ww-sage-dark); background: var(--ww-panel); }
+.dashboard .admin-tabs button.is-active { color: var(--ww-sage-dark); }
+.dashboard .admin-tabs button.is-active::after { background: var(--ww-sage); }
+.dashboard .admin-add { color: #fff; background: var(--ww-sage); border-color: var(--ww-sage); }
+.dashboard :is(.admin-form__footer, .admin-linked-user, .admin-audit, .project-conversations__messages) { background: var(--ww-raised); border-color: var(--ww-border); }
+
+/* The dashboard's real controls and data sit inside a welcoming summary surface. */
+.dashboard-header { position: relative; min-height: 182px; padding: 31px 180px 29px 31px; overflow: hidden; background: radial-gradient(circle, rgb(61 113 100 / 12%) 1px, transparent 1.6px) 0 0 / 19px 19px, linear-gradient(135deg, #e9eee0, #e2ebdc); border: 2px solid var(--ww-border); border-radius: 25px; box-shadow: var(--ww-shadow); animation: ww-enter .38s ease-out both; }
+.dashboard-header h1 { font-size: clamp(30px, 3.2vw, 42px); line-height: 1.15; }
+.dashboard-header p { color: var(--ww-muted); }
+.dashboard-kicker { color: var(--ww-sage-dark) !important; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
+.workshop-mascot--dashboard { position: fixed; top: 92px; right: max(7vw, 70px); animation: ww-hello .6s .1s both; }
+.dashboard-attention { padding: 22px; background: var(--ww-panel); border: 1px solid var(--ww-border); border-radius: 24px; box-shadow: var(--ww-shadow); }
+.dashboard-view-toolbar { margin-top: 23px; }
+.dashboard-view-toggle { background: var(--ww-panel); border-color: var(--ww-border); border-radius: 13px; }
+.dashboard-view-toggle button[aria-pressed="true"] { color: var(--ww-sage-dark); background: var(--ww-sage-soft); }
+.projects-section { margin-top: 34px; }
+
+@keyframes ww-enter { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ww-hello { from { opacity: 0; transform: translateY(13px) rotate(-8deg); } to { opacity: 1; transform: translateY(0) rotate(5deg); } }
+
+html[data-theme="dark"] { --ww-page: #17241f; --ww-panel: #23372f; --ww-raised: #294037; --ww-soft: #2d463b; --ww-ink: #f0f4eb; --ww-muted: #c6d7cb; --ww-border: #4c6859; --ww-sage: #a9d7bd; --ww-sage-dark: #c2e5ce; --ww-sage-soft: #34584a; --ww-shadow: 5px 6px 0 rgb(0 0 0 / 13%), 0 16px 30px rgb(0 0 0 / 20%); color-scheme: dark; }
+html[data-theme="dark"] .dashboard-header { background: radial-gradient(circle, rgb(169 215 189 / 12%) 1px, transparent 1.6px) 0 0 / 19px 19px, linear-gradient(135deg, #2d463b, #22382f); }
+html[data-theme="dark"] .dashboard .primary-action { color: #17241f; }
+html[data-theme="dark"] .dashboard :is(.mock-plan, .mock-project-preview, .project-preview) { background-color: #294037; }
+html[data-theme="dark"] .workshop-mascot .lab-mascot__body { fill: #4d6044; }
+
+@media (max-width: 900px) { .workshop-mascot--dashboard { right: 35px; width: 100px; } .workshop-mascot--dashboard .lab-mascot { width: 100px; height: 100px; } .dashboard-header { padding-right: 140px; } }
+@media (max-width: 1100px) { .workshop-mascot--welcome .lab-mascot { width: 130px; height: 130px; } }
+@media (max-width: 700px) { .workshop-mascot--welcome { display: none; } .dashboard-header { min-height: 0; padding: 24px; } .workshop-mascot--dashboard { display: none; } .dashboard-attention { padding: 16px; } .frontend-switcher { top: 10px; right: 10px; min-height: 32px; padding: 6px 10px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }

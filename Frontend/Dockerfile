@@ -1,20 +1,19 @@
 # syntax=docker/dockerfile:1
-# Development image for the Racletty Vite frontend. Dependencies and
-# Playwright browsers are installed in the image, never on the host machine.
+# Development image for both visual modes of the shared Racletty frontend.
 FROM node:22-bookworm-slim
 
-WORKDIR /app
+WORKDIR /workspace/Frontend
 
 ENV NODE_ENV=development \
     CHOKIDAR_USEPOLLING=true
 
-# Playwright installs Chromium and its system libraries during the image build.
-COPY package.json package-lock.json* ./
-RUN npm install && npm cache clean --force
+COPY Frontend/package.json Frontend/package-lock.json* ./
+RUN npm install --no-audit --no-fund && npm cache clean --force
 
-COPY . .
+COPY Frontend /workspace/Frontend
+COPY ["Frontend 2", "/workspace/Frontend 2"]
 
-EXPOSE 5385
+EXPOSE 5385 5386
 
 # The development node_modules directory is a persistent Compose volume. Keep it
 # synchronized with the bind-mounted lockfile whenever the container starts so a

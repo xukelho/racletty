@@ -10,6 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { setAuthenticatedRoles } from "../auth";
 import { BrandLogoMark } from "../components/BrandLogoMark";
+import { LabMascot } from "../design-lab/LabMascot";
 
 type FieldErrors = {
   username?: string;
@@ -36,7 +37,8 @@ const QUICK_LOGIN_OPTIONS: QuickLoginOption[] = [
 
 function LoginPage() {
   const navigate = useNavigate();
-  const isDevelopment = import.meta.env.MODE === "development";
+  const isDevelopment = import.meta.env.MODE === "development" ||
+    (import.meta.env.MODE === "legacy" && import.meta.env.DEV);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -117,25 +119,28 @@ function LoginPage() {
             Review revisions, resolve feedback, and keep every project decision
             clear—from first sketch to final approval.
           </p>
-          <div className="project-card" aria-hidden="true">
-            <div className="project-card__top">
-              <span>Residence No. 04</span>
-              <span className="status"><i /> In review</span>
-            </div>
-            <div className="drawing">
-              <span className="drawing__room drawing__room--one" />
-              <span className="drawing__room drawing__room--two" />
-              <span className="drawing__room drawing__room--three" />
-              <span className="drawing__room drawing__room--four" />
-              <span className="drawing__note drawing__note--one"><Check size={12} /> 3</span>
-              <span className="drawing__note drawing__note--two">2</span>
-            </div>
-            <div className="project-card__footer">
-              <span>Ground floor · Revision 08</span>
-              <div className="avatars">
-                <span>MC</span><span>AR</span><span>+2</span>
+          <div className="workshop-welcome-scene">
+            <div className="project-card" aria-hidden="true">
+              <div className="project-card__top">
+                <span>Residence No. 04</span>
+                <span className="status"><i /> In review</span>
+              </div>
+              <div className="drawing">
+                <span className="drawing__room drawing__room--one" />
+                <span className="drawing__room drawing__room--two" />
+                <span className="drawing__room drawing__room--three" />
+                <span className="drawing__room drawing__room--four" />
+                <span className="drawing__note drawing__note--one"><Check size={12} /> 3</span>
+                <span className="drawing__note drawing__note--two">2</span>
+              </div>
+              <div className="project-card__footer">
+                <span>Ground floor · Revision 08</span>
+                <div className="avatars">
+                  <span>MC</span><span>AR</span><span>+2</span>
+                </div>
               </div>
             </div>
+            {import.meta.env.VITE_WORKSHOP_UI === "true" && <div className="workshop-mascot workshop-mascot--welcome"><LabMascot style="storybook" /></div>}
           </div>
         </div>
 

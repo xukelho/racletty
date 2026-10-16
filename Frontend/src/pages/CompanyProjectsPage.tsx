@@ -10,6 +10,17 @@ function ErrorMessage({ value }: { value: string }) {
   return value ? <p role="alert">{value}</p> : null;
 }
 
+function CollectionHeading({ title, count, open, onToggle }: { title: string; count: number; open: boolean; onToggle: () => void }) {
+  const chevron = <ChevronDown className={open ? "" : "is-collapsed"} size={19} aria-hidden="true" />;
+  if (import.meta.env.VITE_WORKSHOP_UI === "true") {
+    return <div className="workshop-collection-heading">
+      <button type="button" aria-label={`${open ? "Recolher" : "Expandir"} ${title}`} aria-expanded={open} onClick={onToggle}>{chevron}</button>
+      <h2>{title}</h2><small>{count}</small>
+    </div>;
+  }
+  return <button className="mock-section-heading" type="button" aria-expanded={open} onClick={onToggle}><span>{chevron}<strong>{title}</strong><small>{count}</small></span></button>;
+}
+
 export function CompanyProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [query, setQuery] = useState("");
@@ -47,8 +58,8 @@ export function CompanyProjectsPage() {
     </header>
     <label className="mock-search mock-project-search"><Search size={19} /><span className="sr-only">Pesquisar projetos</span><input type="search" placeholder="Pesquisar por projeto, empresa, cliente ou morada" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
     <ErrorMessage value={error} />
-    <section className="mock-collapsible"><button className="mock-section-heading" type="button" aria-expanded={activeOpen} onClick={() => setActiveOpen((open) => !open)}><span><ChevronDown className={activeOpen ? "" : "is-collapsed"} size={19} /><strong>Projetos ativos</strong><small>{activeProjects.length}</small></span></button>{activeOpen && projectCollection(activeProjects)}</section>
-    <section className="mock-collapsible"><button className="mock-section-heading" type="button" aria-expanded={archivedOpen} onClick={() => setArchivedOpen((open) => !open)}><span><ChevronDown className={archivedOpen ? "" : "is-collapsed"} size={19} /><strong>Projetos arquivados</strong><small>{archivedProjects.length}</small></span></button>{archivedOpen && projectCollection(archivedProjects)}</section>
+    <section className="mock-collapsible"><CollectionHeading title="Projetos ativos" count={activeProjects.length} open={activeOpen} onToggle={() => setActiveOpen((open) => !open)} />{activeOpen && projectCollection(activeProjects)}</section>
+    <section className="mock-collapsible"><CollectionHeading title="Projetos arquivados" count={archivedProjects.length} open={archivedOpen} onToggle={() => setArchivedOpen((open) => !open)} />{archivedOpen && projectCollection(archivedProjects)}</section>
     {!error && !filtered.length && <p>Não existem projetos a apresentar.</p>}
   </PortalShell>;
 }
