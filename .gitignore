@@ -5,7 +5,6 @@
 # Node build output and dependencies
 **/node_modules/
 **/dist/
-**/legacy-dist/
 **/.vite/
 *.tsbuildinfo
 

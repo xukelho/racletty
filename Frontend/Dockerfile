@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Development image for both visual modes of the shared Racletty frontend.
+# Development image for the Racletty frontend and Workshop styling.
 FROM node:22-bookworm-slim
 
 WORKDIR /workspace/Frontend
@@ -13,7 +13,7 @@ RUN npm install --no-audit --no-fund && npm cache clean --force
 COPY Frontend /workspace/Frontend
 COPY ["Frontend 2", "/workspace/Frontend 2"]
 
-EXPOSE 5385 5386
+EXPOSE 5385
 
 # The development node_modules directory is a persistent Compose volume. Keep it
 # synchronized with the bind-mounted lockfile whenever the container starts so a

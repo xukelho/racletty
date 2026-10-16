@@ -1,7 +1,6 @@
 .git
 **/node_modules
 **/dist
-**/legacy-dist
 **/.vite
 **/bin
 **/obj

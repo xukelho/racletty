@@ -37,8 +37,7 @@ const QUICK_LOGIN_OPTIONS: QuickLoginOption[] = [
 
 function LoginPage() {
   const navigate = useNavigate();
-  const isDevelopment = import.meta.env.MODE === "development" ||
-    (import.meta.env.MODE === "legacy" && import.meta.env.DEV);
+  const isDevelopment = import.meta.env.MODE === "development";
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -140,7 +139,7 @@ function LoginPage() {
                 </div>
               </div>
             </div>
-            {import.meta.env.VITE_WORKSHOP_UI === "true" && <div className="workshop-mascot workshop-mascot--welcome"><LabMascot style="storybook" /></div>}
+            <div className="workshop-mascot workshop-mascot--welcome"><LabMascot style="storybook" /></div>
           </div>
         </div>
 

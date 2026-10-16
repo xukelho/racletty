@@ -23,23 +23,6 @@ services:
       WATCHPACK_POLLING: "true"
       VITE_API_PROXY_TARGET: "http://racletty-api:1818"
       VITE_GOOGLE_MAPS_API_KEY: "${VITE_GOOGLE_MAPS_API_KEY:-}"
-      VITE_LEGACY_PROXY_TARGET: "http://racletty-frontend-2:5386"
-
-  racletty-frontend-2:
-    build:
-      context: .
-      dockerfile: Frontend/Dockerfile
-    command: ["sh", "-c", "npm install --no-audit --no-fund && npm run dev:legacy"]
-    ports:
-      - "5386:5386"
-    volumes:
-      - ./Frontend:/workspace/Frontend
-      - ./Frontend 2:/workspace/Frontend 2
-      - racletty-frontend-2-node-modules:/workspace/Frontend/node_modules
-    environment:
-      <<: *application-environment
-      VITE_API_PROXY_TARGET: "http://racletty-api:1818"
-      VITE_GOOGLE_MAPS_API_KEY: "${VITE_GOOGLE_MAPS_API_KEY:-}"
 
   racletty-api:
     build:
@@ -114,8 +97,6 @@ services:
 volumes:
   racletty-frontend-node-modules:
     name: racletty-frontend-node-modules
-  racletty-frontend-2-node-modules:
-    name: racletty-frontend-2-node-modules
   racletty-db:
     name: racletty-db
   racletty-objects:

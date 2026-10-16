@@ -12,13 +12,10 @@ function ErrorMessage({ value }: { value: string }) {
 
 function CollectionHeading({ title, count, open, onToggle }: { title: string; count: number; open: boolean; onToggle: () => void }) {
   const chevron = <ChevronDown className={open ? "" : "is-collapsed"} size={19} aria-hidden="true" />;
-  if (import.meta.env.VITE_WORKSHOP_UI === "true") {
-    return <div className="workshop-collection-heading">
-      <button type="button" aria-label={`${open ? "Recolher" : "Expandir"} ${title}`} aria-expanded={open} onClick={onToggle}>{chevron}</button>
-      <h2>{title}</h2><small>{count}</small>
-    </div>;
-  }
-  return <button className="mock-section-heading" type="button" aria-expanded={open} onClick={onToggle}><span>{chevron}<strong>{title}</strong><small>{count}</small></span></button>;
+  return <div className="workshop-collection-heading">
+    <button type="button" aria-label={`${open ? "Recolher" : "Expandir"} ${title}`} aria-expanded={open} onClick={onToggle}>{chevron}</button>
+    <h2>{title}</h2><small>{count}</small>
+  </div>;
 }
 
 export function CompanyProjectsPage() {

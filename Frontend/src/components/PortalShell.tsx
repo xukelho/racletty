@@ -24,11 +24,11 @@ import { BrandLogoMark } from "./BrandLogoMark";
 import { getNotificationSummary, NOTIFICATIONS_CHANGED_EVENT } from "../api/notifications";
 
 const primaryNav = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard", mockStatus: undefined },
-  { label: "Projetos", icon: FolderKanban, path: "/projects", mockStatus: undefined },
-  { label: "Clientes", icon: Users, path: "/clients", mockStatus: undefined },
-  { label: "Administração", icon: ShieldCheck, path: "/administration", mockStatus: undefined },
-  { label: "Definições", icon: Settings, path: "/settings", mockStatus: undefined },
+  { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { label: "Projetos", icon: FolderKanban, path: "/projects" },
+  { label: "Clientes", icon: Users, path: "/clients" },
+  { label: "Administração", icon: ShieldCheck, path: "/administration" },
+  { label: "Definições", icon: Settings, path: "/settings" },
 ];
 
 const secondaryNav = [

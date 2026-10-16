@@ -1,9 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700&display=swap");
 
-.frontend-switcher { position: fixed; z-index: 100; top: 14px; right: 16px; display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 7px 12px; color: #fff; background: #0b5368; border-radius: 999px; box-shadow: 0 8px 25px rgb(3 20 17 / 18%); font: 700 12px/1 "DM Sans", sans-serif; text-decoration: none; white-space: nowrap; }
-.frontend-switcher:hover { color: #fff; background: #073b4c; }
-.frontend-switcher:focus-visible { outline: 3px solid #147d92; outline-offset: 3px; }
-
 :root {
   font-family: "DM Sans", sans-serif;
   color: #15333f;

@@ -27,9 +27,6 @@ button, a, input, textarea, select { transition: background-color .18s ease, bor
 button:active:not(:disabled) { transform: scale(.985); }
 :is(button, input, textarea, select, a):focus-visible { outline: 3px solid var(--ww-sage); outline-offset: 3px; }
 
-.frontend-switcher { position: fixed; z-index: 100; top: 14px; right: 16px; display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 7px 12px; color: #fff; background: #315e53; border: 1px solid #315e53; border-radius: 999px; box-shadow: 0 5px 0 rgb(27 67 54 / 17%), 0 12px 28px rgb(19 56 45 / 15%); font: 800 12px/1 "Nunito", Arial, sans-serif; text-decoration: none; white-space: nowrap; }
-.frontend-switcher:hover { color: #fff; background: #244e43; transform: translateY(-2px); }
-.frontend-switcher span { color: #f1c69c; font-size: 17px; }
 
 /* Welcome */
 .login-page { color: var(--ww-ink); }
@@ -146,5 +143,5 @@ html[data-theme="dark"] .workshop-mascot .lab-mascot__body { fill: #4d6044; }
 
 @media (max-width: 900px) { .workshop-mascot--dashboard { right: 35px; width: 100px; } .workshop-mascot--dashboard .lab-mascot { width: 100px; height: 100px; } .dashboard-header { padding-right: 140px; } }
 @media (max-width: 1100px) { .workshop-mascot--welcome .lab-mascot { width: 130px; height: 130px; } }
-@media (max-width: 700px) { .workshop-mascot--welcome { display: none; } .dashboard-header { min-height: 0; padding: 24px; } .workshop-mascot--dashboard { display: none; } .dashboard-attention { padding: 16px; } .frontend-switcher { top: 10px; right: 10px; min-height: 32px; padding: 6px 10px; } }
+@media (max-width: 700px) { .workshop-mascot--welcome { display: none; } .dashboard-header { min-height: 0; padding: 24px; } .workshop-mascot--dashboard { display: none; } .dashboard-attention { padding: 16px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
