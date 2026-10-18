@@ -1,10 +1,10 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PortalShell from "../components/PortalShell";
 import { GoogleMapPicker } from "../components/GoogleMapPicker";
 import { ProjectTimelineEditor, TimelinePhase, newTimelinePhase } from "../components/ProjectTimelineEditor";
-import { createProject, getClients, getCompanyMembers, ProjectMember } from "../api/projects";
+import { ClientManagementApiError, createProject, getClients, getCompanyMembers, ProjectMember } from "../api/projects";
 import { useProfile } from "../profile/ProfileContext";
 import { QUICK_FILL_PHASE_CODES } from "../projectPhases";
 
@@ -24,6 +24,10 @@ export function CompanyProjectsCreatePage() {
   const [currentPhaseId, setCurrentPhaseId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitting = useRef(false);
+  const errorSummary = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     if (!owner) return;
@@ -40,25 +44,57 @@ export function CompanyProjectsCreatePage() {
   const toggleClient = (clientId: number, checked: boolean) => setSelectedClients((current) => checked ? [...current, clientId] : current.filter((id) => id !== clientId));
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if (submitting.current) return;
+    const nextErrors: Record<string, string> = {};
+    if (!data.title.trim()) nextErrors.title = "Indica o título do projeto.";
+    if (!data.code.trim()) nextErrors.code = "Indica o código do projeto.";
+    if (data.googleMapsUrl.trim()) {
+      try { new URL(data.googleMapsUrl); } catch { nextErrors.googleMapsUrl = "Indica um URL válido."; }
+    }
+    setFieldErrors(nextErrors);
+    setError("");
+    if (Object.keys(nextErrors).length) {
+      window.requestAnimationFrame(() => document.getElementById(`create-project-${Object.keys(nextErrors)[0]}`)?.focus());
+      return;
+    }
+    submitting.current = true;
+    setIsSubmitting(true);
     try {
       const result = await createProject({ ...data, clientIds: selectedClients, employeeIds: selected, phaseCodes: timelinePhases.map((phase) => phase.code), currentPhaseIndex: currentPhaseId ? timelinePhases.findIndex((phase) => phase.id === currentPhaseId) : null });
       navigate(`/projects/${result.id}`);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Erro ao guardar.");
+      if (caught instanceof ClientManagementApiError) {
+        const serverErrors = Object.fromEntries(Object.entries(caught.fieldErrors).filter(([key]) => ["title", "code", "address", "googleMapsUrl"].includes(key)));
+        setFieldErrors(serverErrors);
+        window.requestAnimationFrame(() => {
+          const firstField = Object.keys(serverErrors)[0];
+          if (firstField) document.getElementById(`create-project-${firstField}`)?.focus();
+          else errorSummary.current?.focus();
+        });
+      } else window.requestAnimationFrame(() => errorSummary.current?.focus());
+    } finally {
+      submitting.current = false;
+      setIsSubmitting(false);
     }
+  };
+
+  const updateField = (field: keyof typeof blank, value: string) => {
+    setData((current) => ({ ...current, [field]: value }));
+    setFieldErrors((current) => ({ ...current, [field]: "" }));
   };
 
   return <PortalShell>
     <button className="mock-back-link" onClick={() => navigate("/projects")}><ArrowLeft size={17} />Projetos</button>
     <header className="mock-page-header"><div><h1>Criar projeto</h1><p>Informação essencial, participantes e timeline do projeto.</p></div></header>
-    {error && <p role="alert">{error}</p>}
-    {owner && <form className="mock-form-column" onSubmit={submit}>
+    {error && <p className="mock-project-notice mock-project-notice--error" role="alert" tabIndex={-1} ref={errorSummary}>{error}</p>}
+    {owner && <form className="mock-form-column" onSubmit={submit} noValidate aria-busy={isSubmitting}>
       <section className="mock-surface"><div className="mock-form-grid">
-        <label className="mock-field mock-field--wide">Título<input required value={data.title} onChange={(event) => setData({ ...data, title: event.target.value })} /></label>
-        <label className="mock-field">Código<input required value={data.code} onChange={(event) => setData({ ...data, code: event.target.value })} /></label>
-        <label className="mock-field mock-field--wide">Morada<input value={data.address} onChange={(event) => setData({ ...data, address: event.target.value })} /></label>
-        <label className="mock-field mock-field--wide">Localização (Google Maps)<input type="url" value={data.googleMapsUrl} placeholder="Cole um link do Google Maps" onChange={(event) => setData({ ...data, googleMapsUrl: event.target.value })} /><small>Opcional. Pode colar um link ou selecionar no mapa.</small></label>
-        <div className="mock-field--wide"><GoogleMapPicker onLocationChange={(googleMapsUrl) => setData((current) => ({ ...current, googleMapsUrl }))} /></div>
+        <label className="mock-field mock-field--wide">Título<input id="create-project-title" aria-label="Título" required value={data.title} aria-invalid={!!fieldErrors.title} aria-describedby={fieldErrors.title ? "create-project-title-error" : undefined} onChange={(event) => updateField("title", event.target.value)} />{fieldErrors.title && <small className="mock-field-error" id="create-project-title-error">{fieldErrors.title}</small>}</label>
+        <label className="mock-field">Código<input id="create-project-code" aria-label="Código" required value={data.code} aria-invalid={!!fieldErrors.code} aria-describedby={fieldErrors.code ? "create-project-code-error" : undefined} onChange={(event) => updateField("code", event.target.value)} />{fieldErrors.code && <small className="mock-field-error" id="create-project-code-error">{fieldErrors.code}</small>}</label>
+        <label className="mock-field mock-field--wide">Morada<input id="create-project-address" aria-label="Morada" value={data.address} aria-invalid={!!fieldErrors.address} aria-describedby={fieldErrors.address ? "create-project-address-error" : undefined} onChange={(event) => updateField("address", event.target.value)} />{fieldErrors.address && <small className="mock-field-error" id="create-project-address-error">{fieldErrors.address}</small>}</label>
+        <label className="mock-field mock-field--wide">Localização (Google Maps)<input id="create-project-googleMapsUrl" aria-label="Localização (Google Maps)" type="url" value={data.googleMapsUrl} placeholder="Cole um link do Google Maps" aria-invalid={!!fieldErrors.googleMapsUrl} aria-describedby={fieldErrors.googleMapsUrl ? "create-project-googleMapsUrl-error" : undefined} onChange={(event) => updateField("googleMapsUrl", event.target.value)} /><small>Opcional. Pode colar um link ou selecionar no mapa.</small>{fieldErrors.googleMapsUrl && <small className="mock-field-error" id="create-project-googleMapsUrl-error">{fieldErrors.googleMapsUrl}</small>}</label>
+        <div className="mock-field--wide"><GoogleMapPicker onLocationChange={(googleMapsUrl) => updateField("googleMapsUrl", googleMapsUrl)} /></div>
       </div></section>
       <section className="mock-surface">
         <div className="mock-section-title"><div><h2>Clientes associados</h2><p>Seleciona os clientes que terão acesso a este projeto.</p></div></div>
@@ -72,7 +108,7 @@ export function CompanyProjectsCreatePage() {
         <div className="mock-project-member-grid">{filteredMembers.map((member) => <label className="mock-project-member-card" key={member.employeeId}><input type="checkbox" checked={selected.includes(member.employeeId)} onChange={(event) => toggleMember(member.employeeId, event.target.checked)} /><span className="mock-client-avatar mock-client-avatar--blue" aria-hidden="true">{initials(member.displayName)}</span><span><strong>{member.displayName}</strong></span></label>)}</div>
         {!filteredMembers.length && <p className="mock-empty-state">Não existem arquitetos a apresentar.</p>}
       </section>
-      <button className="primary-action" type="submit">Guardar</button>
+      <button className="primary-action" type="submit" disabled={isSubmitting}>{isSubmitting ? "A criar projeto…" : "Criar projeto"}</button>
     </form>}
   </PortalShell>;
 }

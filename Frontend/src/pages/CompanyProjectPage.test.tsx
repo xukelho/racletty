@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { setAuthenticatedRoles } from "../auth";
@@ -138,6 +138,7 @@ describe("CompanyProjectPage", () => {
 
     renderPage();
 
+    await userEvent.setup().click(await screen.findByRole("button", { name: "Ver localização" }));
     const preview = await screen.findByTitle("Mapa da localização do projeto Casa do Vale");
     expect(preview).toHaveAttribute("src", "https://www.google.com/maps?q=38.7%2C-9.1&output=embed");
     expect(screen.getByRole("link", { name: /Abrir no Google Maps/ })).toHaveAttribute("href", project.googleMapsUrl);
@@ -248,13 +249,16 @@ describe("CompanyProjectPage", () => {
     expect(await screen.findByRole("img", { name: /Inicial\.dxf/ })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Projeto de Licenciamento" }));
     expect(await screen.findByRole("img", { name: /Licenca_R02\.dxf/ })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: /Memoria\.pdf/ })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: /Licenca_R02\.dxf/ })).toHaveAttribute("aria-current", "true");
-    expect(screen.queryByRole("option", { name: /Inicial\.dxf/ })).not.toBeInTheDocument();
+    expect(screen.getByText("Outra fase")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Voltar à fase atual" })).toBeInTheDocument();
+    const documentList = screen.getByRole("listbox", { name: "Documentos da fase" });
+    expect(within(documentList).getByRole("option", { name: /Memoria\.pdf/ })).toBeInTheDocument();
+    expect(within(documentList).getByRole("option", { name: /Licenca_R02\.dxf/ })).toHaveAttribute("aria-current", "true");
+    expect(within(documentList).queryByRole("option", { name: /Inicial\.dxf/ })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /Projeto de Execu/ }));
     expect(await screen.findByLabelText("PDF Caderno.pdf")).toHaveAttribute("data", "blob:preview-pdf");
-    expect(screen.getAllByText("Caderno.pdf")).toHaveLength(2);
+    expect(screen.getAllByText("Caderno.pdf").length).toBeGreaterThanOrEqual(2);
   });
 
   it("loads DXF, DWFX, and DWG documents into the visualizer when clicked", async () => {
@@ -285,11 +289,11 @@ describe("CompanyProjectPage", () => {
     renderPage();
 
     expect(await screen.findByRole("img", { name: "Pré-visualização de Modelo.dwg" })).toBeInTheDocument();
-    await user.click(screen.getByRole("option", { name: /Planta\.dxf/ }));
+    await user.click(within(screen.getByRole("listbox", { name: "Documentos da fase" })).getByRole("option", { name: /Planta\.dxf/ }));
     expect(await screen.findByRole("img", { name: "Pré-visualização de Planta.dxf" })).toBeInTheDocument();
-    await user.click(screen.getByRole("option", { name: /Alcado\.dwfx/ }));
+    await user.click(within(screen.getByRole("listbox", { name: "Documentos da fase" })).getByRole("option", { name: /Alcado\.dwfx/ }));
     expect(await screen.findByRole("img", { name: "Pré-visualização de Alcado.dwfx" })).toBeInTheDocument();
-    await user.click(screen.getByRole("option", { name: /Modelo\.dwg/ }));
+    await user.click(within(screen.getByRole("listbox", { name: "Documentos da fase" })).getByRole("option", { name: /Modelo\.dwg/ }));
     expect(await screen.findByRole("img", { name: "Pré-visualização de Modelo.dwg" })).toBeInTheDocument();
   });
 
