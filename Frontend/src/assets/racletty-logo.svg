@@ -1,51 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">Technical Racletty spatula icon with downward-tapering blade</title>
-  <desc id="desc">A one-piece Racletty spatula with a narrow handle and a broad triangular paddle tapering downward to a short scraping edge, drawn only with blue vector lines.</desc>
-
-  <g fill="none" stroke="#2563EB" stroke-linecap="round" stroke-linejoin="round">
-    <!-- One-piece Racletty spatula: wide shoulders, downward-pointing triangular blade -->
-    <path stroke-width="10" d="
-      M236 54
-      Q226 54 226 66
-      L226 202
-      Q226 220 207 232
-      L119 267
-      Q102 274 112 290
-      L204 427
-      Q214 442 232 442
-      L280 442
-      Q298 442 308 427
-      L400 290
-      Q410 274 393 267
-      L305 232
-      Q286 220 286 202
-      L286 66
-      Q286 54 276 54
-      Z"/>
-
-    <!-- Hanging hole -->
-    <circle cx="256" cy="88" r="13" stroke-width="8"/>
-
-    <!-- Blade shoulder / manufacturing transition -->
-    <path d="M119 267 Q256 225 393 267" stroke-width="6"/>
-
-    <!-- Technical centerline -->
-    <path d="M256 35 L256 466" stroke-width="4" stroke-dasharray="12 14"/>
-
-    <!-- Triangular construction guides -->
-    <path d="M119 267 L256 442 L393 267" stroke-width="4" stroke-dasharray="10 13"/>
-
-    <!-- Maximum blade-width dimension -->
-    <path d="M101 315 L411 315" stroke-width="4"/>
-    <path d="M101 299 L101 331 M411 299 L411 331" stroke-width="4"/>
-
-    <!-- Scraping-tip dimension -->
-    <path d="M204 475 L308 475" stroke-width="4"/>
-    <path d="M204 458 L204 488 M308 458 L308 488" stroke-width="4"/>
-
-    <!-- Small datum marks -->
-    <path d="M94 267 L122 267 M108 253 L108 281" stroke-width="4"/>
-    <path d="M390 267 L418 267 M404 253 L404 281" stroke-width="4"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Racletty Workshop spatula mascot</title>
+  <path d="M77 22c0-7 5-12 12-12s12 5 12 12v41c0 7 4 12 10 15l33 17c8 4 10 12 5 19l-34 43c-3 4-8 6-13 6H76c-5 0-10-2-13-6l-34-43c-5-7-3-15 5-19l32-17c7-3 11-8 11-15V22Z" fill="#ffe7b5" stroke="#3d7164" stroke-width="5" stroke-linejoin="round"/>
+  <circle cx="68" cy="111" r="4" fill="#3d7164"/>
+  <circle cx="110" cy="111" r="4" fill="#3d7164"/>
+  <path d="M79 125c5 6 15 6 20 0" stroke="#3d7164" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="59" cy="122" r="5" fill="#ECA49B" opacity=".8"/>
+  <circle cx="119" cy="122" r="5" fill="#ECA49B" opacity=".8"/>
 </svg>
