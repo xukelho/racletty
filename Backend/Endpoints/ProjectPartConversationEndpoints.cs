@@ -101,11 +101,15 @@ public static class ProjectPartConversationEndpoints
         var message = new ProjectPartConversationMessage { ConversationId = conversationId, AuthorUserId = userId, AuthorDisplayName = displayName, Body = body, CreatedAt = DateTimeOffset.UtcNow };
         db.ProjectPartConversationMessages.Add(message);
         await db.SaveChangesAsync(ct);
+        var ownerUserIds = await db.CompanyEmployees.AsNoTracking()
+            .Where(item => item.CompanyRole == CompanyRoles.Owner && item.Employee!.User!.IsActive &&
+                item.Company!.Projects.Any(project => project.Id == projectId))
+            .Select(item => item.Employee!.UserId).ToArrayAsync(ct);
         await notifications.AddAsync(new ProjectNotificationCommand(
             projectId, userId, ProjectEventTypes.PartMessageCreated,
             $"adicionou uma mensagem à conversa «{conversation.Title}».", NotificationTargetKinds.PartConversation,
             $"part-message:{message.Id}", conversation.DocumentId, conversationId, message.Id,
-            new { conversation.Title }, Audience: AudienceFor(document)), ct);
+            new { conversation.Title }, AdditionalRecipientUserIds: ownerUserIds, Audience: AudienceFor(document)), ct);
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
         return TypedResults.Created($"/api/projects/{projectId}/part-conversations/{conversationId}/messages/{message.Id}", ToMessageResponse(message, userId));

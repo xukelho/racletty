@@ -112,11 +112,13 @@ function DashboardPage() {
       <NotificationList items={notifications.items} loading={notifications.loading} emptyText="Tudo em dia." onRead={notifications.read} />
     </section>}
 
-    <label className="mock-search mock-project-search" htmlFor="company-dashboard-project-search">
-      <Search size={19} aria-hidden="true" /><span className="sr-only">Pesquisar projetos</span>
-      <input id="company-dashboard-project-search" type="search" placeholder="Pesquisar por projeto, cliente ou morada" value={query} onChange={(event) => setQuery(event.target.value)} />
-      {query && <button type="button" aria-label="Limpar pesquisa" onClick={() => setQuery("")}><X size={16} /></button>}
-    </label>
+    <div className="mock-search mock-project-search">
+      <label className="mock-project-search__label" htmlFor="company-dashboard-project-search">
+        <Search size={19} aria-hidden="true" /><span className="sr-only">Pesquisar projetos</span>
+        <input id="company-dashboard-project-search" type="search" placeholder="Pesquisar por projeto, cliente ou morada" value={query} onChange={(event) => setQuery(event.target.value)} />
+      </label>
+      <button type="button" aria-label="Limpar pesquisa" disabled={!query} onClick={() => setQuery("")}><X size={16} aria-hidden="true" /></button>
+    </div>
 
     <section className="projects-section" aria-labelledby="company-active-projects-title">
       <div className="section-heading">
