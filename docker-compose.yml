@@ -10,13 +10,14 @@ x-application-environment: &application-environment
 services:
   racletty-frontend:
     build:
-      context: ./Frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Frontend/Dockerfile
     ports:
       - "5385:5385"
     volumes:
-      - ./Frontend:/app
-      - racletty-frontend-node-modules:/app/node_modules
+      - ./Frontend:/workspace/Frontend
+      - ./Frontend 2:/workspace/Frontend 2
+      - racletty-frontend-node-modules:/workspace/Frontend/node_modules
     environment:
       <<: *application-environment
       WATCHPACK_POLLING: "true"

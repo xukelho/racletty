@@ -1,5 +1,5 @@
-import { useSyncExternalStore } from "react";
-import { Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { lazy, Suspense, useSyncExternalStore } from "react";
+import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import AdministrationPage from "./pages/AdministrationPage";
@@ -14,6 +14,9 @@ import { CompanyProjectsCreatePage } from "./pages/CompanyProjectsCreatePage";
 import { CompanyProjectPage } from "./pages/CompanyProjectPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { ThemeProvider } from "./theme/ThemeContext";
+
+const DesignLabPage = lazy(() => import("./design-lab/DesignLabPage").then(({ DesignLabPage }) => ({ default: DesignLabPage })));
+const designLabEnabled = import.meta.env.DEV || import.meta.env.VITE_ENABLE_DESIGN_LAB === "true";
 
 function AdministrationRoute() {
   return isPlatformAdmin()
@@ -70,6 +73,10 @@ function AuthenticatedRoute() {
 }
 
 function App() {
+  const location = useLocation();
+  if (designLabEnabled && location.pathname === "/design-lab") {
+    return <Suspense fallback={<p role="status">A abrir o design lab…</p>}><DesignLabPage /></Suspense>;
+  }
   return (
     <ProfileProvider>
       <ThemeProvider>

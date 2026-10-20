@@ -76,6 +76,7 @@ export function CompanyProjectPage() {
   const [isTimelineEditing, setIsTimelineEditing] = useState(false);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
   const [isWorkspaceCollapsed, setIsWorkspaceCollapsed] = useState(false);
+  const [isLocationExpanded, setIsLocationExpanded] = useState(false);
   const [timelineMenuOpen, setTimelineMenuOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingTimeline, setIsSavingTimeline] = useState(false);
@@ -94,7 +95,8 @@ export function CompanyProjectPage() {
     const loadedCurrentPhaseId = (loadedProject.phases ?? []).find((phase) => phase.isCurrent)?.id.toString() ?? null;
     setTimelinePhases(loadedPhases);
     setCurrentPhaseId(loadedCurrentPhaseId);
-    setViewedPhaseId(loadedCurrentPhaseId ?? loadedPhases[0]?.id ?? null);
+    setViewedPhaseId((current) => project?.id === loadedProject.id && loadedPhases.some((phase) => phase.id === current)
+      ? current : loadedCurrentPhaseId ?? loadedPhases[0]?.id ?? null);
   };
   useEffect(() => {
     if (!owner) return;
@@ -262,14 +264,16 @@ export function CompanyProjectPage() {
               {project.address && <div className="project-hero__metadata-address"><span className="project-hero__meta-icon"><MapPin size={18} aria-hidden="true" /></span><span><small>Morada</small><strong>{project.address}</strong></span></div>}
               <div className="project-hero__metadata-architects"><span className="project-hero__meta-icon"><UsersRound size={18} aria-hidden="true" /></span><span><small>Arquitetos atribuídos</small><strong>{project.members?.length ? project.members.map((member) => member.displayName).join(", ") : "Sem arquitetos atribuídos"}</strong></span></div>
             </div>
+            {project.googleMapsUrl && <button className="project-hero__location-toggle" type="button" aria-expanded={isLocationExpanded} onClick={() => setIsLocationExpanded((expanded) => !expanded)}><MapPin size={16} aria-hidden="true" />{isLocationExpanded ? "Ocultar localização" : "Ver localização"}</button>}
+            {!project.googleMapsUrl && <p className="project-hero__location-note">{project.address ? "Mapa por definir" : "Localização por definir"}</p>}
           </>}
         </div>
-        <aside className={`project-hero__location ${isEditing ? "is-editing" : ""}`} aria-label={isEditing ? "Editar localização do projeto" : "Localização do projeto"}>
+        {(isEditing || isLocationExpanded) && <aside className={`project-hero__location ${isEditing ? "is-editing" : ""}`} aria-label={isEditing ? "Editar localização do projeto" : "Localização do projeto"}>
           {isEditing ? <><div className="project-hero__location-heading"><span className="project-hero__location-icon"><MapPin size={18} aria-hidden="true" /></span><div><strong>Localização</strong><small>Pesquise ou assinale o ponto no mapa.</small></div></div><GoogleMapPicker onLocationChange={(googleMapsUrl) => setData((current) => ({ ...current, googleMapsUrl }))} /></> : project.googleMapsUrl && googleMapsEmbedUrl(project.googleMapsUrl, project.address) ? <>
             <div className="project-hero__map"><iframe src={googleMapsEmbedUrl(project.googleMapsUrl, project.address)!} title={`Mapa da localização do projeto ${project.title}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" /></div>
             <div className="project-hero__location-footer"><span><small>Localização do projeto</small><strong>{project.address || "Ponto assinalado no mapa"}</strong></span><a href={project.googleMapsUrl} target="_blank" rel="noreferrer">Abrir no Google Maps<ExternalLink size={14} aria-hidden="true" /></a></div>
           </> : <div className="project-hero__location-empty"><span className="project-hero__location-mark"><MapPin size={28} aria-hidden="true" /></span><div><small>Localização</small><strong>Localização por definir</strong><p>Adicione uma morada ou um ponto no mapa para completar o enquadramento do projeto.</p></div></div>}
-        </aside>
+        </aside>}
         {!isEditing && <aside className="project-hero__phase" aria-label="Fase atual do projeto">
           <span className="project-hero__phase-icon"><CurrentPhaseIcon size={32} strokeWidth={1.7} aria-hidden="true" /></span>
           <span><small>Fase atual</small><strong>{currentPhaseLabel}</strong></span>
@@ -288,7 +292,7 @@ export function CompanyProjectPage() {
             </div>
             {isTimelineEditing ? <><ProjectTimelineEditor phases={timelinePhases} currentPhaseId={currentPhaseId} onPhasesChange={setTimelinePhases} onCurrentPhaseIdChange={setCurrentPhaseId} onQuickFill={() => { setTimelinePhases(QUICK_FILL_PHASE_CODES.map(newTimelinePhase)); setCurrentPhaseId(null); }} /><div className="mock-project-form-actions"><button type="button" className="secondary-action" onClick={cancelTimeline}>Cancelar</button><button type="button" className="primary-action" disabled={isSavingTimeline} onClick={saveTimeline}>{isSavingTimeline ? "A guardar…" : "Guardar timeline"}</button></div></> : projectPhases.length ? <ProjectTimelineView phases={projectPhases} currentPhaseId={officialCurrentPhaseId} viewedPhaseId={viewedPhaseId} expanded={isTimelineExpanded} onPhaseSelect={setViewedPhaseId} /> : <p className="mock-empty-state">Timeline opcional ainda não configurada.</p>}
           </section>
-        <ProjectDocumentViewer phaseCode={viewedPhase?.code ?? null} document={viewerDocument} drawing={documentPreview} content={documentContent} loading={documentPreviewLoading} error={documentPreviewError} onRetry={() => setDocumentPreviewRetry((current) => current + 1)} isMaximized={isDocumentViewerMaximized} onMaximizedChange={setIsDocumentViewerMaximized} selectedPart={selectedDrawingPart} conversations={partConversations} onPartSelect={setSelectedDrawingPart} onConversationOpen={(conversationId) => setConversationOpenRequest((current) => ({ id: conversationId, token: current.token + 1 }))} />
+        <ProjectDocumentViewer phaseCode={viewedPhase?.code ?? null} phaseIsCurrent={viewedPhase?.id === officialCurrentPhaseId} onReturnToCurrentPhase={officialCurrentPhaseId ? () => setViewedPhaseId(officialCurrentPhaseId) : undefined} document={viewerDocument} documents={viewedDocuments} onDocumentChange={(documentId) => { setViewerDocumentId(documentId); setViewerPhaseId(viewedPhase?.id ?? null); }} drawing={documentPreview} content={documentContent} loading={documentPreviewLoading} error={documentPreviewError} onRetry={() => setDocumentPreviewRetry((current) => current + 1)} isMaximized={isDocumentViewerMaximized} onMaximizedChange={setIsDocumentViewerMaximized} selectedPart={selectedDrawingPart} conversations={partConversations} onPartSelect={setSelectedDrawingPart} onConversationOpen={(conversationId) => setConversationOpenRequest((current) => ({ id: conversationId, token: current.token + 1 }))} />
         <ProjectDocuments key={id} phases={projectPhases} viewedPhaseId={viewedPhaseId} documents={documents} loading={documentsLoading} error={documentsError} readOnly={project.isArchived} previewDocumentId={viewerDocumentId} onUploadFile={uploadDocument} onDeleteDocument={removeDocument} onDownloadDocument={downloadDocument} onVisibilityChange={changeDocumentVisibility} onPreviewDocumentSelect={(document) => { setViewerDocumentId(document.id); setViewerPhaseId(String(document.phaseId)); }} />
         <ProjectWorkspacePanel projectId={id!} projectTitle={project.title} archived={project.isArchived} phases={projectPhases} viewedPhaseId={viewedPhaseId} documents={documents} selectedDrawingPart={selectedDrawingPart} partConversations={partConversations} requestedConversationId={conversationOpenRequest.id} requestedConversationToken={conversationOpenRequest.token} onCreatePartConversation={async (title) => { if (!viewerDocument || !selectedDrawingPart) throw new Error("Selecione uma parte do desenho."); const created = await createProjectPartConversation(id!, viewerDocument.id, selectedDrawingPart, title); setPartConversations((current) => [...current, created]); return created; }} onPartConversationsRefresh={() => setPartConversationsRetry((current) => current + 1)} onCollapsedChange={setIsWorkspaceCollapsed} />
       </div>

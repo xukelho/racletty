@@ -13,6 +13,10 @@ type DashboardLayout = "attention-first" | "by-project";
 const DASHBOARD_LAYOUT_KEY = "racletty.dashboard.notification-layout";
 
 const initialLayout = (): DashboardLayout => sessionStorage.getItem(DASHBOARD_LAYOUT_KEY) === "by-project" ? "by-project" : "attention-first";
+const dashboardDate = (date: Date) => {
+  const label = new Intl.DateTimeFormat("pt-PT", { weekday: "long", day: "numeric", month: "long" }).format(date);
+  return label.charAt(0).toLocaleUpperCase("pt-PT") + label.slice(1);
+};
 
 function ProjectNotificationPreview({ projectId, projectTitle, unreadCount }: { projectId: number; projectTitle: string; unreadCount: number }) {
   const navigate = useNavigate();
@@ -35,12 +39,20 @@ function DashboardPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [layout, setLayoutState] = useState<DashboardLayout>(initialLayout);
+  const [today, setToday] = useState(() => new Date());
   const notifications = useNotifications({ unreadOnly: true, limit: 8 });
   const notificationSummary = useNotificationSummary();
   const profileName = profile?.displayName ?? "Ana Martins";
   const firstName = profileName.trim().split(/\s+/)[0] || "Ana";
   const isClientProfile = profile?.profileType === "client";
   const canViewArchitects = profile?.companyRole === "owner";
+
+  useEffect(() => {
+    const refreshDate = () => setToday(new Date());
+    const interval = window.setInterval(refreshDate, 60_000);
+    window.addEventListener("focus", refreshDate);
+    return () => { window.clearInterval(interval); window.removeEventListener("focus", refreshDate); };
+  }, []);
 
   useEffect(() => {
     let isCurrent = true;
@@ -77,7 +89,7 @@ function DashboardPage() {
 
   return <PortalShell>
     <header className="dashboard-header">
-      <div><p className="dashboard-kicker">Segunda-feira, 27 de julho</p><h1>Bom dia, {firstName}</h1><p>Acompanha os projetos ativos e o que requer a tua atenção.</p></div>
+      <div><p className="dashboard-kicker">{dashboardDate(today)}</p><h1>Bom dia, {firstName}</h1><p>Acompanha os projetos ativos e o que requer a tua atenção.</p></div>
     </header>
 
     <div className="dashboard-view-toolbar">
