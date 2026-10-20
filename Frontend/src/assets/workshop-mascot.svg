@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Racletty Workshop spatula mascot</title>
+  <path d="M77 22c0-7 5-12 12-12s12 5 12 12v41c0 7 4 12 10 15l33 17c8 4 10 12 5 19l-34 43c-3 4-8 6-13 6H76c-5 0-10-2-13-6l-34-43c-5-7-3-15 5-19l32-17c7-3 11-8 11-15V22Z" fill="#ffe7b5" stroke="#3d7164" stroke-width="5" stroke-linejoin="round"/>
+  <circle cx="68" cy="111" r="4" fill="#3d7164"/>
+  <circle cx="110" cy="111" r="4" fill="#3d7164"/>
+  <path d="M79 125c5 6 15 6 20 0" stroke="#3d7164" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="59" cy="122" r="5" fill="#ECA49B" opacity=".8"/>
+  <circle cx="119" cy="122" r="5" fill="#ECA49B" opacity=".8"/>
+</svg>
