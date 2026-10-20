@@ -393,6 +393,24 @@ describe("CompanyProjectPage", () => {
     expect(screen.getByText("A conversa está disponível apenas para leitura.")).toBeInTheDocument();
   });
 
+  it("does not show document visibility controls to clients", async () => {
+    setAuthenticatedRoles(["client"]);
+    const project = { ...emptyProject, phases: [{ id: 11, code: "preliminary-study", label: "Estudo Prévio", position: 0, isCurrent: true }] };
+    const document = { id: "document-1", phaseId: 11, fileName: "Memoria.pdf", contentType: "application/pdf", length: 100, status: "Available", isVisible: true, createdBy: 1, createdByDisplayName: "Ana", createdAt: "2026-08-12T09:00:00Z", uploadedAt: "2026-08-12T09:00:00Z", preview: null };
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = String(input);
+      if (url === "/api/profile") return response({ ...profile("employee"), profileType: "client", roles: ["client"], companyRole: undefined });
+      if (url === "/api/projects/1") return response(project);
+      if (url === "/api/projects/1/documents") return response([document]);
+      return response([]);
+    });
+
+    renderPage();
+
+    expect(await screen.findByRole("option", { name: /Memoria\.pdf/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Ocultar Memoria\.pdf dos clientes/ })).not.toBeInTheDocument();
+  });
+
   it("sends the desired visibility and merges the full server response without selecting the document", async () => {
     setAuthenticatedRoles(["employee"]);
     const phasedProject = { ...emptyProject, phases: [{ id: 11, code: "preliminary-study", label: "Estudo Prévio", position: 0, isCurrent: true }] };
