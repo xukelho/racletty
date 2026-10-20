@@ -13,6 +13,7 @@ import { CompanyProjectsPage } from "./pages/CompanyProjectsPage";
 import { CompanyProjectsCreatePage } from "./pages/CompanyProjectsCreatePage";
 import { CompanyProjectPage } from "./pages/CompanyProjectPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
+import { RoadmapPage } from "./pages/RoadmapPage";
 import { ThemeProvider } from "./theme/ThemeContext";
 
 const DesignLabPage = lazy(() => import("./design-lab/DesignLabPage").then(({ DesignLabPage }) => ({ default: DesignLabPage })));
@@ -96,6 +97,7 @@ function App() {
             <Route path="/settings" element={<CompanySettingsRoute />} />
             <Route path="/settings/storage" element={<CompanySettingsRoute />} />
             <Route path="/notifications" element={<NotificationsRoute />} />
+            <Route path="/roadmap" element={<RoadmapPage />} />
             <Route path="/profile" element={<ProfileRoute />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
