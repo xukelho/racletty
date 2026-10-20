@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, Plus, Search } from "lucide-react";
+import { ChevronDown, Plus, Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PortalShell from "../components/PortalShell";
 import { getProjects, Project, projectClients } from "../api/projects";
@@ -53,7 +53,13 @@ export function CompanyProjectsPage() {
       <div><p className="mock-eyebrow">Portefólio</p><h1>Projetos</h1><p>Consulta, pesquisa e acompanha os projetos{profile?.profileType === "client" ? " das empresas associadas" : " do atelier"}.</p></div>
       {profile?.companyRole === "owner" && <button className="primary-action" onClick={() => navigate("/projects/new")}><Plus size={18} />Criar projeto</button>}
     </header>
-    <label className="mock-search mock-project-search"><Search size={19} /><span className="sr-only">Pesquisar projetos</span><input type="search" placeholder="Pesquisar por projeto, empresa, cliente ou morada" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
+    <div className="mock-search mock-project-search">
+      <label className="mock-project-search__label" htmlFor="company-project-search">
+        <Search size={19} aria-hidden="true" /><span className="sr-only">Pesquisar projetos</span>
+        <input id="company-project-search" type="search" placeholder="Pesquisar por projeto, empresa, cliente ou morada" value={query} onChange={(event) => setQuery(event.target.value)} />
+      </label>
+      <button type="button" aria-label="Limpar pesquisa" disabled={!query} onClick={() => setQuery("")}><X size={16} aria-hidden="true" /></button>
+    </div>
     <ErrorMessage value={error} />
     <section className="mock-collapsible"><CollectionHeading title="Projetos ativos" count={activeProjects.length} open={activeOpen} onToggle={() => setActiveOpen((open) => !open)} />{activeOpen && projectCollection(activeProjects)}</section>
     <section className="mock-collapsible"><CollectionHeading title="Projetos arquivados" count={archivedProjects.length} open={archivedOpen} onToggle={() => setArchivedOpen((open) => !open)} />{archivedOpen && projectCollection(archivedProjects)}</section>
