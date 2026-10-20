@@ -131,9 +131,19 @@ public sealed partial class ProjectIntegrationTests(PostgreSqlApiFixture fixture
         using var clientMutation = await fixture.Client.DeleteAsync($"/api/projects/{projectId}/documents/{documentId}");
         Assert.Equal(HttpStatusCode.NotFound, clientMutation.StatusCode);
 
+        using var clientMessageResponse = await fixture.Client.PostAsJsonAsync(
+            $"/api/projects/{projectId}/part-conversations/{conversationId}/messages", new { body = "Área confirmada pelo cliente." });
+        Assert.Equal(HttpStatusCode.Created, clientMessageResponse.StatusCode);
+        var clientMessage = await clientMessageResponse.Content.ReadFromJsonAsync<JsonElement>();
+
         await LoginAsync(owner.Username);
         var ownerNotificationSummary = await fixture.Client.GetFromJsonAsync<JsonElement>("/api/notifications/summary");
-        Assert.Equal(0, ownerNotificationSummary.GetProperty("unreadCount").GetInt32());
+        Assert.Equal(1, ownerNotificationSummary.GetProperty("unreadCount").GetInt32());
+        var ownerNotifications = await fixture.Client.GetFromJsonAsync<JsonElement>("/api/notifications");
+        var clientMessageNotification = Assert.Single(ownerNotifications.GetProperty("items").EnumerateArray().ToArray());
+        Assert.Equal("project.part_message_created", clientMessageNotification.GetProperty("type").GetString());
+        Assert.Equal(conversationId, clientMessageNotification.GetProperty("target").GetProperty("conversationId").GetInt64());
+        Assert.Equal(clientMessage.GetProperty("id").GetInt64(), clientMessageNotification.GetProperty("target").GetProperty("messageId").GetInt64());
         using var archived = await fixture.Client.PostAsync($"/api/projects/{projectId}/archive", null);
         Assert.Equal(HttpStatusCode.NoContent, archived.StatusCode);
         Assert.Single((await fixture.Client.GetFromJsonAsync<JsonElement[]>($"/api/projects/{projectId}/documents"))!);
