@@ -287,7 +287,9 @@ This phase is conditional. Candidates must be prioritised using validated user n
 
 - 3D model navigation
 - Element selection and richer model context
-- Additional model and document formats
+- Evaluate direct support for additional BIM authoring formats, including Revit `.rvt` and Archicad `.pln`, alongside the initial IFC `.ifc` workflow; only commit to formats after validating conversion, licensing and representative files
+- Explore AI-generated, style-selectable 3D concept previews from house plans, with clear labeling that generated imagery is illustrative rather than a faithful BIM model or construction document
+- Additional document formats where pilot evidence supports them
 - More advanced annotations
 
 #### Team and enterprise capabilities

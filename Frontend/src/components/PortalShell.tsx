@@ -9,6 +9,7 @@ import {
   LogOut,
   Menu,
   MoreHorizontal,
+  Map,
   ShieldCheck,
   Settings,
   Users,
@@ -33,6 +34,7 @@ const primaryNav = [
 
 const secondaryNav = [
   { label: "Notificações", icon: Bell, path: "/notifications" },
+  { label: "Roadmap", icon: Map, path: "/roadmap" },
 ];
 
 type PortalShellProps = {
