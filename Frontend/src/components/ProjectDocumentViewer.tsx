@@ -6,11 +6,7 @@ import { filePreviewKind, ProjectFileViewer } from "./ProjectFileViewer";
 
 type Props = {
   phaseCode: string | null;
-  phaseIsCurrent?: boolean;
-  onReturnToCurrentPhase?: () => void;
   document: ProjectDocument | null;
-  documents?: ProjectDocument[];
-  onDocumentChange?: (documentId: string) => void;
   drawing: DrawingDocument | null;
   content: Blob | null;
   loading: boolean;
@@ -33,7 +29,7 @@ const modelPoint = (event: ReactPointerEvent<HTMLCanvasElement>, view: Viewport)
   return { x: (event.clientX - rect.left - view.tx) / view.scale, y: (view.ty - (event.clientY - rect.top)) / view.scale };
 };
 
-export function ProjectDocumentViewer({ phaseCode, phaseIsCurrent = true, onReturnToCurrentPhase, document, documents = [], onDocumentChange, drawing, content, loading, error, onRetry, isMaximized, onMaximizedChange, selectedPart, conversations, conversationBadgeCounts, onPartSelect, onConversationOpen }: Props) {
+export function ProjectDocumentViewer({ phaseCode, document, drawing, content, loading, error, onRetry, isMaximized, onMaximizedChange, selectedPart, conversations, conversationBadgeCounts, onPartSelect, onConversationOpen }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
@@ -173,9 +169,7 @@ export function ProjectDocumentViewer({ phaseCode, phaseIsCurrent = true, onRetu
       </div>
     </header>
     <div className="project-document-viewer__context" aria-label="Contexto da visualização">
-      <div><small>Fase em visualização</small><strong>{phaseLabel}</strong><span>{phaseIsCurrent ? "Fase atual" : "Outra fase"}</span></div>
-      {!phaseIsCurrent && onReturnToCurrentPhase && <button type="button" onClick={onReturnToCurrentPhase}>Voltar à fase atual</button>}
-      {documents.length > 1 && onDocumentChange && <label>Documento<select aria-label="Selecionar documento" value={document?.id ?? ""} onChange={(event) => onDocumentChange(event.target.value)}><option value="" disabled>Selecionar documento</option>{documents.map((item) => <option key={item.id} value={item.id}>{item.fileName}</option>)}</select></label>}
+      <div><small>Fase em visualização</small><strong>{phaseLabel}</strong></div>
     </div>
     <div ref={viewportRef} className={`project-document-viewer__canvas is-tool-${tool} ${dragging ? "is-dragging" : ""}`}>
       {drawing && !loading && <><canvas ref={canvasRef} role="img" aria-label={`Pré-visualização de ${document?.fileName ?? "documento"}`} onPointerDown={startPan} onPointerMove={pan} onPointerUp={endPointer} onPointerCancel={endPan} onPointerLeave={() => tool === "select" && setHoveredPart(null)} />

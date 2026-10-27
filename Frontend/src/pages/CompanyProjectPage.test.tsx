@@ -48,7 +48,7 @@ describe("CompanyProjectPage", () => {
     renderPage("/projects/1?document=notified-file");
     expect(await screen.findByLabelText("PDF Caderno.pdf")).toHaveAttribute("data", "blob:notified-file");
     expect(screen.getByRole("option", { name: /Caderno\.pdf/ })).toHaveAttribute("aria-current", "true");
-    expect(screen.getByText("Outra fase")).toBeInTheDocument();
+    expect(screen.queryByText("Outra fase")).not.toBeInTheDocument();
   });
 
   it("opens a notified drawing conversation and highlights its message", async () => {
@@ -301,8 +301,8 @@ describe("CompanyProjectPage", () => {
     expect(await screen.findByRole("img", { name: /Inicial\.dxf/ })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Projeto de Licenciamento" }));
     expect(await screen.findByRole("img", { name: /Licenca_R02\.dxf/ })).toBeInTheDocument();
-    expect(screen.getByText("Outra fase")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Voltar à fase atual" })).toBeInTheDocument();
+    expect(screen.queryByText("Outra fase")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Voltar à fase atual" })).not.toBeInTheDocument();
     const documentList = screen.getByRole("listbox", { name: "Documentos da fase" });
     expect(within(documentList).getByRole("option", { name: /Memoria\.pdf/ })).toBeInTheDocument();
     expect(within(documentList).getByRole("option", { name: /Licenca_R02\.dxf/ })).toHaveAttribute("aria-current", "true");
