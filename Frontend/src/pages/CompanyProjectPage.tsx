@@ -132,7 +132,7 @@ export function CompanyProjectPage() {
   const viewedPhase = projectPhases.find((phase) => phase.id === viewedPhaseId) ?? projectPhases[0] ?? null;
   const viewedDocuments = viewedPhase ? documents[viewedPhase.id] ?? [] : [];
   const viewerDocument = viewedDocuments.find((document) => document.id === viewerDocumentId) ?? null;
-  const currentPhaseCode = project?.phases?.find((phase) => phase.isCurrent)?.code ?? project?.currentPhaseCode;
+  const currentPhaseCode = project?.phases?.find((phase) => phase.isCurrent)?.code ?? project?.currentPhaseCode ?? project?.phases?.[0]?.code;
   const currentPhaseLabel = phaseLabel(currentPhaseCode) ?? "Sem fase atual";
   const CurrentPhaseIcon = PROJECT_PHASES.find((phase) => phase.code === currentPhaseCode)?.icon ?? Milestone;
   const unreadNotificationCount = notificationSummary.summary?.projectUnreadCounts.find((item) => item.projectId === project?.id)?.unreadCount ?? 0;
