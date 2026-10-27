@@ -25,13 +25,14 @@ public static class ProjectMessageEndpoints
         long projectId,
         long? beforeId,
         long? afterId,
+        long? aroundId,
         int? limit,
         ClaimsPrincipal principal,
         RaclettyDbContext db,
         CancellationToken ct)
     {
-        if (beforeId is not null && afterId is not null)
-            return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["cursor"] = ["Use either beforeId or afterId, not both."] });
+        if ((beforeId is not null ? 1 : 0) + (afterId is not null ? 1 : 0) + (aroundId is not null ? 1 : 0) > 1)
+            return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["cursor"] = ["Use only one message cursor."] });
 
         if (!TryGetUserId(principal, out var userId) || !await CanAccessProject(projectId, principal, db, ct))
             return TypedResults.NotFound();
@@ -41,7 +42,19 @@ public static class ProjectMessageEndpoints
         ProjectMessage[] selected;
         bool hasMore;
 
-        if (afterId is long after)
+        if (aroundId is long targetId)
+        {
+            if (!await query.AnyAsync(message => message.Id == targetId, ct)) return TypedResults.NotFound();
+            var olderLimit = Math.Max(1, pageSize / 2);
+            var newerLimit = pageSize - olderLimit;
+            var older = await query.Where(message => message.Id <= targetId).OrderByDescending(message => message.Id)
+                .Take(olderLimit + 1).ToArrayAsync(ct);
+            var newer = await query.Where(message => message.Id > targetId).OrderBy(message => message.Id)
+                .Take(newerLimit).ToArrayAsync(ct);
+            hasMore = older.Length > olderLimit;
+            selected = older.Take(olderLimit).Reverse().Concat(newer).ToArray();
+        }
+        else if (afterId is long after)
         {
             var candidates = await query.Where(message => message.Id > after).OrderBy(message => message.Id).Take(pageSize + 1).ToArrayAsync(ct);
             hasMore = candidates.Length > pageSize;

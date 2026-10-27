@@ -421,6 +421,11 @@ public sealed partial class ProjectIntegrationTests(PostgreSqlApiFixture fixture
         Assert.Equal(second.GetProperty("id").GetInt64(), olderPage.GetProperty("items")[0].GetProperty("id").GetInt64());
         var incrementalPage = await fixture.Client.GetFromJsonAsync<JsonElement>($"/api/projects/{projectId}/messages?afterId={first.GetProperty("id").GetInt64()}");
         Assert.Equal(2, incrementalPage.GetProperty("items").GetArrayLength());
+        var aroundPage = await fixture.Client.GetFromJsonAsync<JsonElement>($"/api/projects/{projectId}/messages?aroundId={first.GetProperty("id").GetInt64()}&limit=3");
+        Assert.Equal(3, aroundPage.GetProperty("items").GetArrayLength());
+        Assert.Equal(first.GetProperty("id").GetInt64(), aroundPage.GetProperty("items")[0].GetProperty("id").GetInt64());
+        using var missingTarget = await fixture.Client.GetAsync($"/api/projects/{projectId}/messages?aroundId=999999999");
+        Assert.Equal(HttpStatusCode.NotFound, missingTarget.StatusCode);
 
         await LoginAsync(unrelatedClient.Username);
         using var denied = await fixture.Client.GetAsync($"/api/projects/{projectId}/messages");

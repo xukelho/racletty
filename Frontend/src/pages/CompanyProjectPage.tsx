@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Bell, Building2, ExternalLink, MapPin, Milestone, MoreHorizontal, Pencil, Search, UsersRound, X } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PortalShell from "../components/PortalShell";
 import { GoogleMapPicker } from "../components/GoogleMapPicker";
 import { ProjectTimelineEditor, ProjectTimelineView, TimelinePhase, newTimelinePhase } from "../components/ProjectTimelineEditor";
@@ -43,6 +43,12 @@ const googleMapsEmbedUrl = (googleMapsUrl: string, address: string) => {
 export function CompanyProjectPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const queryDocumentId = searchParams.get("document");
+  const queryConversationId = Number(searchParams.get("conversation"));
+  const targetConversationId = Number.isSafeInteger(queryConversationId) && queryConversationId > 0 ? queryConversationId : null;
+  const queryMessageId = Number(searchParams.get("message"));
+  const targetMessageId = Number.isSafeInteger(queryMessageId) && queryMessageId > 0 ? queryMessageId : null;
   const { profile } = useProfile();
   const notificationSummary = useNotificationSummary();
   const owner = profile?.companyRole === "owner";
@@ -71,6 +77,7 @@ export function CompanyProjectPage() {
   const [partConversations, setPartConversations] = useState<ProjectPartConversation[]>([]);
   const [partConversationsRetry, setPartConversationsRetry] = useState(0);
   const [conversationOpenRequest, setConversationOpenRequest] = useState({ id: null as number | null, token: 0 });
+  const [conversationTarget, setConversationTarget] = useState<{ projectId: string; id: number; documentId: string } | null>(null);
   const [isDocumentViewerMaximized, setIsDocumentViewerMaximized] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isTimelineEditing, setIsTimelineEditing] = useState(false);
@@ -129,6 +136,8 @@ export function CompanyProjectPage() {
   const currentPhaseLabel = phaseLabel(currentPhaseCode) ?? "Sem fase atual";
   const CurrentPhaseIcon = PROJECT_PHASES.find((phase) => phase.code === currentPhaseCode)?.icon ?? Milestone;
   const unreadNotificationCount = notificationSummary.summary?.projectUnreadCounts.find((item) => item.projectId === project?.id)?.unreadCount ?? 0;
+  const requestedConversationId = conversationTarget && conversationTarget.projectId === id && conversationTarget.id === targetConversationId
+    ? conversationTarget.id : conversationOpenRequest.id;
   const filteredMembers = useMemo(() => { const normalizedQuery = query.trim().toLocaleLowerCase("pt-PT"); return displayedMembers.filter((member) => member.displayName.toLocaleLowerCase("pt-PT").includes(normalizedQuery)); }, [displayedMembers, query]);
   const hasChanges = Boolean(project) && (Object.entries(projectFormData(project!)).some(([key, value]) => data[key as keyof ProjectFormData] !== value) || !sameMemberIds(selectedClients, projectClients(project!).map((client) => client.id)) || !sameMemberIds(selected, project!.members?.map((member) => member.employeeId) ?? []));
   const toggleClient = (clientId: number, checked: boolean) => setSelectedClients((current) => checked ? [...current, clientId] : current.filter((selectedClientId) => selectedClientId !== clientId));
@@ -160,6 +169,31 @@ export function CompanyProjectPage() {
     getProjectPartConversations(id, viewerDocument.id).then((items) => { if (active) setPartConversations(items); }).catch(() => { if (active) setPartConversations([]); });
     return () => { active = false; };
   }, [id, viewerDocument?.id, viewerDocument?.preview?.kind, partConversationsRetry]);
+  useEffect(() => {
+    setConversationTarget(null);
+    if (!id || targetConversationId === null) return;
+    let active = true;
+    getProjectPartConversations(id).then((items) => {
+      if (!active) return;
+      const target = items.find((item) => item.id === targetConversationId);
+      if (target) setConversationTarget({ projectId: id, id: target.id, documentId: target.documentId });
+      else setNotice({ type: "error", message: "A conversa já não está disponível." });
+    }).catch(() => { if (active) setNotice({ type: "error", message: "Não foi possível abrir a conversa." }); });
+    return () => { active = false; };
+  }, [id, targetConversationId]);
+  useEffect(() => {
+    if (documentsLoading || !project || String(project.id) !== id) return;
+    const requestedId = conversationTarget?.projectId === id && conversationTarget.id === targetConversationId ? conversationTarget.documentId : queryDocumentId;
+    if (!requestedId) return;
+    const document = Object.values(documents).flat().find((item) => item.id === requestedId);
+    if (!document || !project.phases?.some((phase) => phase.id === document.phaseId)) {
+      setNotice({ type: "error", message: "O ficheiro já não está disponível." });
+      return;
+    }
+    setViewedPhaseId(String(document.phaseId));
+    setViewerDocumentId(document.id);
+    setViewerPhaseId(String(document.phaseId));
+  }, [id, project, documents, documentsLoading, queryDocumentId, conversationTarget, targetConversationId]);
   useEffect(() => { setSelectedDrawingPart(null); }, [viewerDocument?.id]);
   const uploadDocument = async (phaseId: string, file: File) => {
     if (!id) throw new Error("Projeto indisponível.");
@@ -294,7 +328,7 @@ export function CompanyProjectPage() {
           </section>
         <ProjectDocumentViewer phaseCode={viewedPhase?.code ?? null} phaseIsCurrent={viewedPhase?.id === officialCurrentPhaseId} onReturnToCurrentPhase={officialCurrentPhaseId ? () => setViewedPhaseId(officialCurrentPhaseId) : undefined} document={viewerDocument} documents={viewedDocuments} onDocumentChange={(documentId) => { setViewerDocumentId(documentId); setViewerPhaseId(viewedPhase?.id ?? null); }} drawing={documentPreview} content={documentContent} loading={documentPreviewLoading} error={documentPreviewError} onRetry={() => setDocumentPreviewRetry((current) => current + 1)} isMaximized={isDocumentViewerMaximized} onMaximizedChange={setIsDocumentViewerMaximized} selectedPart={selectedDrawingPart} conversations={partConversations} onPartSelect={setSelectedDrawingPart} onConversationOpen={(conversationId) => setConversationOpenRequest((current) => ({ id: conversationId, token: current.token + 1 }))} />
         <ProjectDocuments key={id} phases={projectPhases} viewedPhaseId={viewedPhaseId} documents={documents} loading={documentsLoading} error={documentsError} readOnly={project.isArchived} previewDocumentId={viewerDocumentId} onUploadFile={uploadDocument} onDeleteDocument={removeDocument} onDownloadDocument={downloadDocument} onVisibilityChange={profile?.profileType === "employee" ? changeDocumentVisibility : undefined} onPreviewDocumentSelect={(document) => { setViewerDocumentId(document.id); setViewerPhaseId(String(document.phaseId)); }} />
-        <ProjectWorkspacePanel projectId={id!} projectTitle={project.title} archived={project.isArchived} phases={projectPhases} viewedPhaseId={viewedPhaseId} documents={documents} selectedDrawingPart={selectedDrawingPart} partConversations={partConversations} requestedConversationId={conversationOpenRequest.id} requestedConversationToken={conversationOpenRequest.token} onCreatePartConversation={async (title) => { if (!viewerDocument || !selectedDrawingPart) throw new Error("Selecione uma parte do desenho."); const created = await createProjectPartConversation(id!, viewerDocument.id, selectedDrawingPart, title); setPartConversations((current) => [...current, created]); return created; }} onPartConversationsRefresh={() => setPartConversationsRetry((current) => current + 1)} onCollapsedChange={setIsWorkspaceCollapsed} />
+        <ProjectWorkspacePanel projectId={id!} projectTitle={project.title} archived={project.isArchived} phases={projectPhases} viewedPhaseId={viewedPhaseId} documents={documents} selectedDrawingPart={selectedDrawingPart} partConversations={partConversations} requestedConversationId={requestedConversationId} requestedConversationToken={conversationOpenRequest.token} requestedGlobalMessageId={searchParams.get("tab") === "global" ? targetMessageId : null} requestedPartMessageId={targetConversationId !== null ? targetMessageId : null} onCreatePartConversation={async (title) => { if (!viewerDocument || !selectedDrawingPart) throw new Error("Selecione uma parte do desenho."); const created = await createProjectPartConversation(id!, viewerDocument.id, selectedDrawingPart, title); setPartConversations((current) => [...current, created]); return created; }} onPartConversationsRefresh={() => setPartConversationsRetry((current) => current + 1)} onCollapsedChange={setIsWorkspaceCollapsed} />
       </div>
       {owner && isEditing && <div className="mock-project-form-actions project-page-actions"><button className="secondary-action" type="button" onClick={() => setArchiveStatusDialogOpen(true)}>{project.isArchived ? "Reativar" : "Arquivar"}</button><button className="secondary-action" type="button" onClick={cancelEditing}>Cancelar</button><button className="primary-action" type="submit" form="project-details-form" disabled={isSaving}>{isSaving ? "A guardar…" : "Guardar"}</button></div>}
       </div>

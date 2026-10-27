@@ -1,6 +1,6 @@
 import { ChangeEvent, DragEvent, FormEvent, KeyboardEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import { ArrowLeft, Box, ChevronDown, Download, Eye, EyeOff, File, FileArchive, FileImage, FilePlus2, FileSpreadsheet, FileText, FileType2, Folder, FolderOpen, LoaderCircle, LockKeyhole, MessageSquare, MessagesSquare, PanelRightClose, PanelRightOpen, PanelsTopLeft, Plus, Presentation, Send, Trash2, X } from "lucide-react";
-import { getProjectMessages, getProjectPartConversationMessages, sendProjectMessage, sendProjectPartConversationMessage } from "../api/projects";
+import { ClientManagementApiError, getProjectMessages, getProjectPartConversationMessages, sendProjectMessage, sendProjectPartConversationMessage } from "../api/projects";
 import type { DrawingSelection, ProjectChatMessage, ProjectDocument, ProjectPartConversation, ProjectPartConversationMessage } from "../api/projects";
 import { phaseLabel } from "../projectPhases";
 import type { TimelinePhase } from "./ProjectTimelineEditor";
@@ -312,17 +312,36 @@ const mergeProjectMessages = (current: ProjectChatMessage[], incoming: ProjectCh
 };
 const projectMessageTime = (value: string) => new Intl.DateTimeFormat("pt-PT", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
 
-export function ProjectGlobalChat({ projectId, archived }: { projectId: string; archived: boolean }) {
+function useMessageHighlight(messageId: number | null, messageIds: number[], listRef: React.RefObject<HTMLDivElement | null>) {
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
+  const lastHighlighted = useRef<number | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (messageId === null) { lastHighlighted.current = null; setHighlightedId(null); return; }
+    if (!messageIds.includes(messageId) || lastHighlighted.current === messageId) return;
+    lastHighlighted.current = messageId;
+    if (timer.current) clearTimeout(timer.current);
+    setHighlightedId(messageId);
+    window.requestAnimationFrame(() => listRef.current?.querySelector(`[data-message-id="${messageId}"]`)?.scrollIntoView?.({ block: "center" }));
+    timer.current = setTimeout(() => { setHighlightedId(null); timer.current = null; }, 5000);
+  }, [messageId, messageIds, listRef]);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  return highlightedId;
+}
+
+export function ProjectGlobalChat({ projectId, archived, requestedMessageId = null }: { projectId: string; archived: boolean; requestedMessageId?: number | null }) {
   const [messages, setMessages] = useState<ProjectChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [sending, setSending] = useState(false);
   const [hasMore, setHasMore] = useState(false);
+  const [loadedTargetId, setLoadedTargetId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
   const messagesRef = useRef<ProjectChatMessage[]>([]);
   const listRef = useRef<HTMLDivElement>(null);
+  const highlightedId = useMessageHighlight(requestedMessageId, !loading && loadedTargetId === requestedMessageId ? messages.map((message) => message.id) : [], listRef);
   const scrollAfterLoad = useRef(false);
 
   useEffect(() => { messagesRef.current = messages; }, [messages]);
@@ -330,17 +349,19 @@ export function ProjectGlobalChat({ projectId, archived }: { projectId: string; 
     let active = true;
     setLoading(true);
     setError("");
-    getProjectMessages(projectId)
+    getProjectMessages(projectId, requestedMessageId === null ? {} : { aroundId: requestedMessageId })
       .then((page) => {
         if (!active) return;
         setMessages(Array.isArray(page.items) ? page.items : []);
+        setLoadedTargetId(requestedMessageId);
         setHasMore(page.hasMore === true);
-        scrollAfterLoad.current = true;
+        scrollAfterLoad.current = requestedMessageId === null;
       })
-      .catch((caught) => { if (active) setError(caught instanceof Error ? caught.message : "Não foi possível carregar as mensagens."); })
+      .catch((caught) => { if (active) setError(caught instanceof ClientManagementApiError && caught.status === 404 && requestedMessageId !== null
+        ? "A mensagem já não está disponível." : caught instanceof Error ? caught.message : "Não foi possível carregar as mensagens."); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [projectId, retry]);
+  }, [projectId, requestedMessageId, retry]);
   useEffect(() => {
     if (loading || !scrollAfterLoad.current) return;
     if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
@@ -403,7 +424,7 @@ export function ProjectGlobalChat({ projectId, archived }: { projectId: string; 
     <header><div><strong>Conversa geral do projeto</strong><small>Todo o projeto</small></div><MessageSquare size={15} aria-label="Conversa global" /></header>
     <div className="project-conversations__messages" ref={listRef} aria-live="polite">
       {hasMore && <button className="project-conversations__older" type="button" disabled={loadingOlder} onClick={() => void loadOlder()}>{loadingOlder ? "A carregar…" : "Carregar mensagens anteriores"}</button>}
-      {loading ? <p className="project-conversations__state" role="status"><LoaderCircle size={18} aria-hidden="true" />A carregar mensagens…</p> : !messages.length && !error ? <p className="project-conversations__state">Ainda não existem mensagens. Inicie a conversa.</p> : messages.map((message) => <article className={message.isOwn ? "is-own" : ""} key={message.id}><div><strong>{message.authorDisplayName}</strong><time dateTime={message.createdAt}>{projectMessageTime(message.createdAt)}</time></div><p>{message.body}</p></article>)}
+      {loading ? <p className="project-conversations__state" role="status"><LoaderCircle size={18} aria-hidden="true" />A carregar mensagens…</p> : !messages.length && !error ? <p className="project-conversations__state">Ainda não existem mensagens. Inicie a conversa.</p> : messages.map((message) => <article className={`${message.isOwn ? "is-own " : ""}${highlightedId === message.id ? "is-highlighted" : ""}`} data-message-id={message.id} key={message.id}><div><strong>{message.authorDisplayName}</strong><time dateTime={message.createdAt}>{projectMessageTime(message.createdAt)}</time></div><p>{message.body}</p></article>)}
       {error && <div className="project-conversations__error" role="alert"><span>{error}</span>{!messages.length && <button type="button" onClick={() => setRetry((current) => current + 1)}>Tentar novamente</button>}</div>}
     </div>
     <form className="project-conversations__composer" onSubmit={submit}>
@@ -417,12 +438,14 @@ export function ProjectGlobalChat({ projectId, archived }: { projectId: string; 
 
 type WorkspaceTab = "global" | "conversations" | "files";
 
-function PartConversationChat({ projectId, conversation, archived, onBack, onMessageCreated }: { projectId: string; conversation: ProjectPartConversation; archived: boolean; onBack: () => void; onMessageCreated: () => void }) {
+function PartConversationChat({ projectId, conversation, archived, requestedMessageId, onBack, onMessageCreated }: { projectId: string; conversation: ProjectPartConversation; archived: boolean; requestedMessageId: number | null; onBack: () => void; onMessageCreated: () => void }) {
   const [messages, setMessages] = useState<ProjectPartConversationMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const listRef = useRef<HTMLDivElement>(null);
+  const highlightedId = useMessageHighlight(requestedMessageId, messages.map((message) => message.id), listRef);
   useEffect(() => {
     let active = true; setLoading(true); setError("");
     getProjectPartConversationMessages(projectId, conversation.id).then((items) => { if (active) setMessages(items); }).catch((caught) => { if (active) setError(caught instanceof Error ? caught.message : "Não foi possível carregar a conversa."); }).finally(() => { if (active) setLoading(false); });
@@ -437,12 +460,12 @@ function PartConversationChat({ projectId, conversation, archived, onBack, onMes
   };
   return <section className="project-conversations__chat" aria-label={conversation.title}>
     <header><button className="project-conversations__back" type="button" onClick={onBack} aria-label="Voltar à lista de conversas"><ArrowLeft size={17} /></button><div><strong>{conversation.title}</strong><small>{conversation.targetLabel}</small></div><MessageSquare size={15} aria-label="Conversa ligada ao desenho" /></header>
-    <div className="project-conversations__messages" aria-live="polite">{loading ? <p className="project-conversations__state">A carregar mensagens…</p> : messages.length ? messages.map((message) => <article className={message.isOwn ? "is-own" : ""} key={message.id}><div><strong>{message.authorDisplayName}</strong><time>{projectMessageTime(message.createdAt)}</time></div><p>{message.body}</p></article>) : <p className="project-conversations__state">Ainda não existem mensagens. Inicie a conversa.</p>}{error && <div className="project-conversations__error" role="alert">{error}</div>}</div>
+    <div className="project-conversations__messages" ref={listRef} aria-live="polite">{loading ? <p className="project-conversations__state">A carregar mensagens…</p> : messages.length ? messages.map((message) => <article className={`${message.isOwn ? "is-own " : ""}${highlightedId === message.id ? "is-highlighted" : ""}`} data-message-id={message.id} key={message.id}><div><strong>{message.authorDisplayName}</strong><time>{projectMessageTime(message.createdAt)}</time></div><p>{message.body}</p></article>) : <p className="project-conversations__state">Ainda não existem mensagens. Inicie a conversa.</p>}{error && <div className="project-conversations__error" role="alert">{error}</div>}</div>
     <form className="project-conversations__composer" onSubmit={submit}><label className="sr-only" htmlFor={`part-conversation-${conversation.id}`}>Nova mensagem</label><textarea id={`part-conversation-${conversation.id}`} rows={2} maxLength={4000} placeholder={archived ? "O projeto está arquivado." : "Escrever uma mensagem…"} value={draft} disabled={archived || sending} onChange={(event) => setDraft(event.target.value)} /><button type="submit" aria-label="Enviar mensagem" disabled={!draft.trim() || archived || sending}>{sending ? <LoaderCircle size={17} /> : <Send size={17} />}</button></form>
   </section>;
 }
 
-export function ProjectWorkspacePanel({ projectId, projectTitle, archived, phases, viewedPhaseId, documents, selectedDrawingPart, partConversations, requestedConversationId, requestedConversationToken, onCreatePartConversation, onPartConversationsRefresh, onCollapsedChange }: { projectId: string; projectTitle: string; archived: boolean; phases: TimelinePhase[]; viewedPhaseId: string | null; documents: ProjectDocumentsByPhase; selectedDrawingPart: DrawingSelection | null; partConversations: ProjectPartConversation[]; requestedConversationId: number | null; requestedConversationToken: number; onCreatePartConversation: (title: string) => Promise<ProjectPartConversation>; onPartConversationsRefresh: () => void; onCollapsedChange?: (collapsed: boolean) => void }) {
+export function ProjectWorkspacePanel({ projectId, projectTitle, archived, phases, viewedPhaseId, documents, selectedDrawingPart, partConversations, requestedConversationId, requestedConversationToken, requestedGlobalMessageId = null, requestedPartMessageId = null, onCreatePartConversation, onPartConversationsRefresh, onCollapsedChange }: { projectId: string; projectTitle: string; archived: boolean; phases: TimelinePhase[]; viewedPhaseId: string | null; documents: ProjectDocumentsByPhase; selectedDrawingPart: DrawingSelection | null; partConversations: ProjectPartConversation[]; requestedConversationId: number | null; requestedConversationToken: number; requestedGlobalMessageId?: number | null; requestedPartMessageId?: number | null; onCreatePartConversation: (title: string) => Promise<ProjectPartConversation>; onPartConversationsRefresh: () => void; onCollapsedChange?: (collapsed: boolean) => void }) {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("global");
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedPartConversationId, setSelectedPartConversationId] = useState<number | null>(null);
@@ -466,6 +489,11 @@ export function ProjectWorkspacePanel({ projectId, projectTitle, archived, phase
     setActiveTab("conversations"); setSelectedPartConversationId(requestedConversationId);
     if (isCollapsed) setCollapsed(false);
   }, [requestedConversationId, requestedConversationToken]);
+  useEffect(() => {
+    if (requestedGlobalMessageId === null) return;
+    setActiveTab("global"); setSelectedPartConversationId(null);
+    if (isCollapsed) setCollapsed(false);
+  }, [requestedGlobalMessageId]);
 
   const selectTab = (tab: WorkspaceTab) => {
     setActiveTab(tab);
@@ -503,11 +531,11 @@ export function ProjectWorkspacePanel({ projectId, projectTitle, archived, phase
     </div>
 
     {activeTab === "global" && <div className="project-workspace-tabpanel" id="workspace-panel-global" role="tabpanel" aria-labelledby="workspace-tab-global">
-      <ProjectGlobalChat projectId={projectId} archived={archived} />
+      <ProjectGlobalChat key={projectId} projectId={projectId} archived={archived} requestedMessageId={requestedGlobalMessageId} />
     </div>}
 
     {activeTab === "conversations" && <div className="project-workspace-tabpanel" id="workspace-panel-conversations" role="tabpanel" aria-labelledby="workspace-tab-conversations">
-      {selectedPartConversation ? <PartConversationChat projectId={projectId} conversation={selectedPartConversation} archived={archived} onBack={() => setSelectedPartConversationId(null)} onMessageCreated={onPartConversationsRefresh} /> : <div className="project-conversation-index">
+      {selectedPartConversation ? <PartConversationChat key={selectedPartConversation.id} projectId={projectId} conversation={selectedPartConversation} archived={archived} requestedMessageId={selectedPartConversation.id === requestedConversationId ? requestedPartMessageId : null} onBack={() => setSelectedPartConversationId(null)} onMessageCreated={onPartConversationsRefresh} /> : <div className="project-conversation-index">
         <header><strong>{selectedDrawingPart ? `Conversas de ${selectedDrawingPart.label}` : "Conversas da fase"}</strong><small>{selectedDrawingPart ? "Seleção ativa no visualizador" : "Selecione um objeto ou uma área no desenho"}</small></header>
         {selectedDrawingPart && !archived && visiblePartConversations.length === 0 && <form className="project-part-conversation-create" onSubmit={createDrawingConversation}><label>Título<input value={newConversationTitle} maxLength={256} onChange={(event) => setNewConversationTitle(event.target.value)} /></label><button className="primary-action" type="submit" disabled={creatingConversation}>{creatingConversation ? "A criar…" : "Nova conversa nesta seleção"}</button></form>}
         {conversationError && <p className="project-conversations__error" role="alert">{conversationError}</p>}

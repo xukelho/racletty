@@ -1,6 +1,7 @@
 import { Bell, HardDrive, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ProjectNotification } from "../api/notifications";
+import { notificationDestination } from "../api/notificationDestination";
 
 const dayLabel = (value: string) => new Intl.DateTimeFormat("pt-PT", { dateStyle: "long" }).format(new Date(value));
 const timeLabel = (value: string) => new Intl.DateTimeFormat("pt-PT", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
@@ -16,7 +17,7 @@ type NotificationListProps = {
 function NotificationCard({ item, onRead }: { item: ProjectNotification; onRead: NotificationListProps["onRead"] }) {
   const navigate = useNavigate();
   const storage = item.target.kind === "companyStorage";
-  return <button type="button" className={`notification-card ${item.readAt ? "" : "is-unread"}`} onClick={() => { void Promise.resolve(onRead(item)).then(() => storage && navigate("/settings/storage")); }}>
+  return <button type="button" className={`notification-card ${item.readAt ? "" : "is-unread"}`} onClick={() => { const destination = notificationDestination(item.target); if (destination) navigate(destination); void onRead(item); }}>
     <span className="notification-card__icon">{storage ? <HardDrive size={18} aria-hidden="true" /> : <MessageSquare size={18} aria-hidden="true" />}</span>
     <span className="notification-card__copy"><strong>{item.actorDisplayName} {item.summary}</strong><small>{item.subjectTitle ?? item.projectTitle}</small></span>
     <time dateTime={item.createdAt}>{timeLabel(item.createdAt)}</time>
