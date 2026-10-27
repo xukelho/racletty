@@ -305,6 +305,25 @@ describe("ProjectDocuments", () => {
 });
 
 describe("ProjectGlobalChat", () => {
+  it("loads an older notification message and removes its highlight after five seconds", async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = String(input);
+      if (url === "/api/projects/1/messages?aroundId=7") return new Response(JSON.stringify({ items: [{ id: 7, authorDisplayName: "Marta", body: "Mensagem antiga", createdAt: "2026-09-06T09:00:00Z", isOwn: false }], hasMore: false }), { headers: { "Content-Type": "application/json" } });
+      if (url === "/api/projects/1/messages?afterId=7") return new Response(JSON.stringify({ items: [], hasMore: false }), { headers: { "Content-Type": "application/json" } });
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    render(<ProjectGlobalChat projectId="1" archived={false} requestedMessageId={7} />);
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    const message = screen.getByText("Mensagem antiga").closest("article")!;
+    expect(fetchMock).toHaveBeenCalledWith("/api/projects/1/messages?aroundId=7", undefined);
+    expect(message).toHaveClass("is-highlighted");
+    await act(async () => { await vi.advanceTimersByTimeAsync(4999); });
+    expect(message).toHaveClass("is-highlighted");
+    await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+    expect(message).not.toHaveClass("is-highlighted");
+  });
+
   it("loads older messages and deduplicates periodic updates", async () => {
     vi.useFakeTimers();
     vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {

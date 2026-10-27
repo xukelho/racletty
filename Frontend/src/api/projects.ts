@@ -81,10 +81,11 @@ export const getProjectDocuments = (id: string) => request<ProjectDocument[]>(`/
 export const setProjectDocumentVisibility = (projectId: string, documentId: string, isVisible: boolean): Promise<ProjectDocument> => request<ProjectDocument>(
   `/api/projects/${projectId}/documents/${documentId}/visibility`, json("PUT", { isVisible }),
 );
-export const getProjectMessages = (id: string, options: { beforeId?: number; afterId?: number; limit?: number } = {}) => {
+export const getProjectMessages = (id: string, options: { beforeId?: number; afterId?: number; aroundId?: number; limit?: number } = {}) => {
   const query = new URLSearchParams();
   if (options.beforeId !== undefined) query.set("beforeId", String(options.beforeId));
   if (options.afterId !== undefined) query.set("afterId", String(options.afterId));
+  if (options.aroundId !== undefined) query.set("aroundId", String(options.aroundId));
   if (options.limit !== undefined) query.set("limit", String(options.limit));
   const suffix = query.size ? `?${query}` : "";
   return request<ProjectChatMessagePage>(`/api/projects/${id}/messages${suffix}`);

@@ -10,8 +10,8 @@ const response = (body: unknown, status = 200) => new Response(JSON.stringify(bo
 const emptyProject = { id: 1, title: "Casa do Vale", code: "CV-001", address: "", googleMapsUrl: null, isArchived: false, clients: [], members: [], phases: [], canEditTimeline: true };
 const profile = (companyRole: "owner" | "employee") => ({ profileType: "employee", userId: 1, username: "ana", displayName: "Ana", fullName: "Ana Martins", nif: "123", email: "ana@example.test", phoneNumber: "910", address: "Lisboa", companyId: 1, companyName: "Forma Norte", roles: ["employee"], availableCompanies: [], companyRole, isArchitect: true });
 
-function renderPage() {
-  return render(<MemoryRouter initialEntries={["/projects/1"]}><ProfileProvider><Routes><Route path="/projects/:id" element={<CompanyProjectPage />} /><Route path="/projects" element={<p>Lista de projetos</p>} /></Routes></ProfileProvider></MemoryRouter>);
+function renderPage(initialEntry = "/projects/1") {
+  return render(<MemoryRouter initialEntries={[initialEntry]}><ProfileProvider><Routes><Route path="/projects/:id" element={<CompanyProjectPage />} /><Route path="/projects" element={<p>Lista de projetos</p>} /></Routes></ProfileProvider></MemoryRouter>);
 }
 
 function NavigateToSecondProject() {
@@ -26,6 +26,58 @@ afterEach(() => {
 });
 
 describe("CompanyProjectPage", () => {
+  it("opens the notified file in its phase and previews it", async () => {
+    setAuthenticatedRoles(["employee"]);
+    const project = { ...emptyProject, phases: [
+      { id: 11, code: "preliminary-study", label: "Estudo Prévio", position: 0, isCurrent: true },
+      { id: 12, code: "execution-project", label: "Projeto de Execução", position: 1, isCurrent: false },
+    ] };
+    const file = { id: "notified-file", phaseId: 12, fileName: "Caderno.pdf", contentType: "application/pdf", length: 100, status: "Available", isVisible: true, createdBy: 1, createdByDisplayName: "Ana", createdAt: "2026-08-12T09:00:00Z", uploadedAt: "2026-08-12T09:00:00Z", preview: null };
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: vi.fn(() => "blob:notified-file") });
+    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: vi.fn() });
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = String(input);
+      if (url === "/api/profile") return response(profile("employee"));
+      if (url === "/api/projects/1") return response(project);
+      if (url === "/api/projects/1/documents") return response([file]);
+      if (url === "/api/projects/1/documents/notified-file/content") return new Response("%PDF-test", { headers: { "Content-Type": "application/pdf" } });
+      if (url === "/api/projects/1/messages") return response({ items: [], hasMore: false });
+      if (url === "/api/notifications/summary") return response({ unreadCount: 0, pendingInvitationCount: 0, total: 0, projectUnreadCounts: [] });
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    renderPage("/projects/1?document=notified-file");
+    expect(await screen.findByLabelText("PDF Caderno.pdf")).toHaveAttribute("data", "blob:notified-file");
+    expect(screen.getByRole("option", { name: /Caderno\.pdf/ })).toHaveAttribute("aria-current", "true");
+    expect(screen.getByText("Outra fase")).toBeInTheDocument();
+  });
+
+  it("opens a notified drawing conversation and highlights its message", async () => {
+    setAuthenticatedRoles(["employee"]);
+    const project = { ...emptyProject, phases: [
+      { id: 11, code: "preliminary-study", label: "Estudo Prévio", position: 0, isCurrent: true },
+      { id: 12, code: "execution-project", label: "Projeto de Execução", position: 1, isCurrent: false },
+    ] };
+    const file = { id: "drawing-1", phaseId: 12, fileName: "Plano.dxf", contentType: "application/dxf", length: 100, status: "Available", isVisible: true, createdBy: 1, createdByDisplayName: "Ana", createdAt: "2026-08-12T09:00:00Z", uploadedAt: "2026-08-12T09:00:00Z", preview: { kind: "drawing", sourceFormat: "dxf" } };
+    const conversation = { id: 9, documentId: file.id, targetKey: "area:1", targetKind: "area", targetLabel: "Sala", title: "Rever sala", anchorX: 1, anchorY: 2, createdAt: "2026-08-12T09:00:00Z", messageCount: 1 };
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = String(input);
+      if (url === "/api/profile") return response(profile("employee"));
+      if (url === "/api/projects/1") return response(project);
+      if (url === "/api/projects/1/documents") return response([file]);
+      if (url === "/api/projects/1/part-conversations" || url === "/api/projects/1/part-conversations?documentId=drawing-1") return response([conversation]);
+      if (url === "/api/projects/1/part-conversations/9/messages") return response([{ id: 17, authorDisplayName: "Marta", body: "Mensagem específica", createdAt: "2026-08-12T09:01:00Z", isOwn: false }]);
+      if (url === "/api/projects/1/documents/drawing-1/drawing") return response({ schemaVersion: 1, converterVersion: "test", documentId: file.id, sourceFormat: "dxf", units: null, bounds: { minX: 0, minY: 0, maxX: 100, maxY: 100 }, layers: [], paths: [], text: [], warnings: [] });
+      if (url === "/api/notifications/summary") return response({ unreadCount: 0, pendingInvitationCount: 0, total: 0, projectUnreadCounts: [] });
+      if (url === "/api/projects/1/messages") return response({ items: [], hasMore: false });
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    renderPage("/projects/1?conversation=9&message=17");
+    const message = await screen.findByText("Mensagem específica");
+    await waitFor(() => expect(message.closest("article")).toHaveClass("is-highlighted"));
+    expect(screen.getByRole("tab", { name: "Conversas" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("option", { name: /Plano\.dxf/ })).toHaveAttribute("aria-current", "true");
+  });
+
   it("shows the current user's unread notification count beside the project title", async () => {
     setAuthenticatedRoles(["employee"]);
     vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
