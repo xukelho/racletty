@@ -35,7 +35,9 @@ public sealed class MinioObjectStoreIntegrationTests
         using var uploadContent = new ByteArrayContent(bytes);
         uploadContent.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
         using var uploaded = await http.PutAsync(upload.Url, uploadContent);
-        Assert.Equal(HttpStatusCode.OK, uploaded.StatusCode);
+        Assert.True(
+            uploaded.StatusCode == HttpStatusCode.OK,
+            $"Presigned MinIO upload returned {(int)uploaded.StatusCode}: {await uploaded.Content.ReadAsStringAsync()}");
 
         var metadata = await store.GetMetadataAsync(key);
         Assert.NotNull(metadata);
