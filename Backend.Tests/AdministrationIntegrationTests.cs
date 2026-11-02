@@ -7,10 +7,32 @@ namespace Racletty.Api.IntegrationTests;
 
 public sealed class AdministrationIntegrationTests(
     PostgreSqlApiFixture fixture)
-    : IClassFixture<PostgreSqlApiFixture>
+    : IClassFixture<PostgreSqlApiFixture>, IAsyncLifetime
 {
     private static readonly JsonSerializerOptions JsonOptions =
         new(JsonSerializerDefaults.Web);
+
+    public Task InitializeAsync() => fixture.LoginAsSeededAdminAsync();
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
+    [Fact]
+    public async Task AdministrationEndpointsRequirePlatformAdmin()
+    {
+        using var anonymousClient = new HttpClient
+        {
+            BaseAddress = fixture.Client.BaseAddress
+        };
+        using var anonymous = await anonymousClient.GetAsync("/api/admin/roles");
+        Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
+
+        using var adminLogin = await fixture.Client.PostAsJsonAsync(
+            "/api/auth/login",
+            new { username = "admin", password = "admin" });
+        Assert.Equal(HttpStatusCode.OK, adminLogin.StatusCode);
+        using var allowed = await fixture.Client.GetAsync("/api/admin/roles");
+        Assert.Equal(HttpStatusCode.OK, allowed.StatusCode);
+    }
 
     [Fact]
     public async Task FreshDatabaseHasExpectedSchemaRolesAndBootstrapAdmin()
@@ -110,8 +132,9 @@ public sealed class AdministrationIntegrationTests(
                 password = (string?)null,
                 roleIds = new[] { 2 }
             });
-        Assert.Equal(HttpStatusCode.Conflict, invalidRoleUpdate.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, invalidRoleUpdate.StatusCode);
 
+        await fixture.LoginAsSeededAdminAsync();
         using var validRoleUpdate = await fixture.Client.PutAsJsonAsync(
             $"/api/admin/users/{userId}",
             new
@@ -200,7 +223,23 @@ public sealed class AdministrationIntegrationTests(
                 phoneNumber = "920000000",
                 address = "Porto"
             });
-        Assert.Equal(HttpStatusCode.Conflict, inactiveLink.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, inactiveLink.StatusCode);
+        await fixture.LoginAsSeededAdminAsync();
+        using var inactiveLinkAsAdmin = await fixture.Client.PostAsJsonAsync(
+            "/api/admin/clients",
+            new
+            {
+                username = "inactive.company.client",
+                password = "secret",
+                companyIds = new[] { companyId },
+                displayName = "Client",
+                fullName = "Inactive Company Client",
+                nif = "987654321",
+                email = "client@example.test",
+                phoneNumber = "920000000",
+                address = "Porto"
+            });
+        Assert.Equal(HttpStatusCode.Conflict, inactiveLinkAsAdmin.StatusCode);
         Assert.Equal(0, await CountUsersAsync("inactive.company.client"));
 
         using var deleteEmployee = await fixture.Client.DeleteAsync(
@@ -281,7 +320,11 @@ public sealed class AdministrationIntegrationTests(
 
         using var delete = await fixture.Client.DeleteAsync(
             $"/api/admin/clients/{client.GetProperty("id").GetInt64()}");
-        Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, delete.StatusCode);
+        await fixture.LoginAsSeededAdminAsync();
+        using var adminDelete = await fixture.Client.DeleteAsync(
+            $"/api/admin/clients/{client.GetProperty("id").GetInt64()}");
+        Assert.Equal(HttpStatusCode.NoContent, adminDelete.StatusCode);
 
         using var loginAfterDelete = await fixture.Client.PostAsJsonAsync(
             "/api/auth/login",

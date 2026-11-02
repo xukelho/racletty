@@ -14,7 +14,8 @@ public static class AdministrationEndpoints
         this IEndpointRouteBuilder endpoints)
     {
         var administration = endpoints.MapGroup("/api/admin")
-            .WithTags("Administration");
+            .WithTags("Administration")
+            .RequireAuthorization(policy => policy.RequireRole("platform admin"));
 
         MapRoleEndpoints(administration);
         MapUserEndpoints(administration);

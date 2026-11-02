@@ -6,8 +6,12 @@ using Npgsql;
 namespace Racletty.Api.IntegrationTests;
 
 public sealed class ClientInvitationIntegrationTests(PostgreSqlApiFixture fixture)
-    : IClassFixture<PostgreSqlApiFixture>
+    : IClassFixture<PostgreSqlApiFixture>, IAsyncLifetime
 {
+    public Task InitializeAsync() => fixture.LoginAsSeededAdminAsync();
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
     [Fact]
     public async Task ClientCanListAcceptAndRejectInvitationsAcrossCompanies()
     {

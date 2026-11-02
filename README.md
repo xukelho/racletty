@@ -8,11 +8,13 @@ Racletty does not replace CAD or BIM authoring software. It complements existing
 
 ## Project Status
 
-**Current phase:** Product definition and architecture  
-**Documentation status:** Draft  
-**Last updated:** 2026-07-25
+**Current phase:** Alpha development and deployment preparation
 
-Implementation has not yet started. Product assumptions, MVP boundaries and technical choices should be validated before they are treated as permanent decisions.
+**Documentation status:** Product and architecture documentation in progress
+
+**Last updated:** 2026-11-02
+
+The application is being prepared for a controlled alpha. The repository includes a local production-mode build and a Portainer deployment bundle; a public VPS deployment still depends on operator configuration of hosting, DNS, GitHub package access and offsite backups.
 
 ## Core Product Workflow
 
@@ -78,6 +80,12 @@ Technology marked as a baseline or candidate in the architecture documentation r
 - [Technology Stack](03%20-%20Architecture/Technology%20Stack.md)
 - [Repository Structure](03%20-%20Architecture/Repository%20Structure.md)
 - [Architecture Principles](03%20-%20Architecture/Architecture%20Principles.md)
+- [Alpha Deployment Plan](03%20-%20Architecture/Alpha%20Deployment.PLAN.md)
+
+### Operations
+
+- [Alpha Deployment Runbook](04%20-%20Operations/Alpha%20Deployment.md)
+- [Jeimerson Server Integration Ledger](04%20-%20Operations/jeimerson%20integration.md)
 
 ## Documentation Conventions
 
@@ -116,6 +124,10 @@ Use `Ctrl+C` to stop a foreground process.
 Docker Compose cannot run `down` for just one service: its `down` command always
 targets the whole project. The service-specific `down*` commands therefore stop
 and remove that service's container, which provides the equivalent scoped result.
+
+For production-mode container testing and the Portainer deployment runbook, see
+[Alpha Deployment](Docs/04%20-%20Operations/Alpha%20Deployment.md). It uses a
+separate Compose project and volumes from local development.
 
 ## Guiding Principle
 

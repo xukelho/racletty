@@ -18,7 +18,9 @@ public sealed class MinioObjectStoreIntegrationTests
         var options = new ObjectStorageOptions
         {
             Endpoint = endpoint, Region = "us-east-1", Bucket = "racletty-private",
-            AccessKey = "racletty_dev", SecretKey = "racletty_dev_password", ForcePathStyle = true
+            AccessKey = Environment.GetEnvironmentVariable("RACLETTY_TEST_S3_ACCESS_KEY") ?? "racletty_dev",
+            SecretKey = Environment.GetEnvironmentVariable("RACLETTY_TEST_S3_SECRET_KEY") ?? "racletty_dev_password",
+            ForcePathStyle = true
         };
         using var client = new AmazonS3Client(new BasicAWSCredentials(options.AccessKey, options.SecretKey), new AmazonS3Config
         {
@@ -33,7 +35,9 @@ public sealed class MinioObjectStoreIntegrationTests
         using var uploadContent = new ByteArrayContent(bytes);
         uploadContent.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
         using var uploaded = await http.PutAsync(upload.Url, uploadContent);
-        Assert.Equal(HttpStatusCode.OK, uploaded.StatusCode);
+        Assert.True(
+            uploaded.StatusCode == HttpStatusCode.OK,
+            $"Presigned MinIO upload returned {(int)uploaded.StatusCode}: {await uploaded.Content.ReadAsStringAsync()}");
 
         var metadata = await store.GetMetadataAsync(key);
         Assert.NotNull(metadata);

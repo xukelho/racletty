@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text;
 using Npgsql;
@@ -57,6 +58,15 @@ public sealed class PostgreSqlApiFixture : IAsyncLifetime
         startInfo.ArgumentList.Add(baseAddress.ToString());
         startInfo.Environment["ConnectionStrings__DefaultConnection"] =
             ConnectionString;
+        if (Environment.GetEnvironmentVariable("RACLETTY_TEST_S3_ENDPOINT") is { Length: > 0 } s3Endpoint)
+        {
+            startInfo.Environment["ObjectStorage__Endpoint"] = s3Endpoint;
+            startInfo.Environment["ObjectStorage__PublicEndpoint"] = s3Endpoint;
+            startInfo.Environment["ObjectStorage__AccessKey"] =
+                Environment.GetEnvironmentVariable("RACLETTY_TEST_S3_ACCESS_KEY") ?? "racletty_dev";
+            startInfo.Environment["ObjectStorage__SecretKey"] =
+                Environment.GetEnvironmentVariable("RACLETTY_TEST_S3_SECRET_KEY") ?? "racletty_dev_password";
+        }
         startInfo.Environment["ASPNETCORE_ENVIRONMENT"] = "Testing";
         startInfo.Environment["Logging__EventLog__LogLevel__Default"] = "None";
 
@@ -81,6 +91,26 @@ public sealed class PostgreSqlApiFixture : IAsyncLifetime
 
         Client = new HttpClient { BaseAddress = baseAddress };
         await WaitForApiAsync();
+        using var bootstrapLogin = await Client.PostAsJsonAsync(
+            "/api/auth/login",
+            new { username = "admin", password = "admin" });
+        if (bootstrapLogin.StatusCode != HttpStatusCode.OK)
+        {
+            throw new InvalidOperationException(
+                $"The seeded administrator could not authenticate for integration tests ({(int)bootstrapLogin.StatusCode}).");
+        }
+    }
+
+    public async Task LoginAsSeededAdminAsync()
+    {
+        using var response = await Client.PostAsJsonAsync(
+            "/api/auth/login",
+            new { username = "admin", password = "admin" });
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            throw new InvalidOperationException(
+                $"The seeded administrator could not authenticate for integration tests ({(int)response.StatusCode}).");
+        }
     }
 
     public async Task DisposeAsync()

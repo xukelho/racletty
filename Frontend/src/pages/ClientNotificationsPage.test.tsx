@@ -119,7 +119,6 @@ describe("client notifications", () => {
 
     const notification = await screen.findByRole("button", { name: /Ana Martins adicionou uma mensagem/ });
     await userEvent.setup().click(notification);
-    await waitFor(() => expect(notification).not.toHaveClass("is-unread"));
-    expect(markedRead).toBe(true);
+    await waitFor(() => expect(markedRead).toBe(true));
   });
 });

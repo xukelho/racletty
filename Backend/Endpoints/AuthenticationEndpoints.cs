@@ -12,6 +12,7 @@ public static class AuthenticationEndpoints
     public static IEndpointRouteBuilder MapAuthenticationEndpoints(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapPost("/api/auth/login", Login)
+            .RequireRateLimiting("authentication-login")
             .WithName("Login")
             .WithTags("Authentication")
             .Accepts<LoginRequest>("application/json")

@@ -1,0 +1,108 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.11-alpine3.24@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: racletty
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5837:5432"]
+        options: >-
+          --health-cmd "pg_isready -U racletty -d postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: npm ci
+        working-directory: Frontend
+      - run: npm run test:run
+        working-directory: Frontend
+      - run: npm run build
+        working-directory: Frontend
+      - run: dotnet build Backend/Racletty.Api.csproj --configuration Release
+      - name: Generate ephemeral integration and production credentials
+        run: |
+          {
+            echo "RACLETTY_TEST_S3_ACCESS_KEY=ci-minio-$(openssl rand -hex 8)"
+            echo "RACLETTY_TEST_S3_SECRET_KEY=$(openssl rand -hex 24)"
+            echo "POSTGRES_PASSWORD=$(openssl rand -hex 24)"
+            echo "MINIO_ROOT_USER=minio-root-$(openssl rand -hex 8)"
+            echo "MINIO_ROOT_PASSWORD=$(openssl rand -hex 24)"
+            echo "MINIO_APP_USER=racletty-app-$(openssl rand -hex 8)"
+            echo "MINIO_APP_PASSWORD=$(openssl rand -hex 24)"
+          } >> "$GITHUB_ENV"
+      - name: Build patched MinIO image
+        run: docker build -f deploy/minio.Dockerfile -t racletty-minio:ci .
+      - name: Build pinned MinIO client image
+        run: docker build -f deploy/minio-client.Dockerfile -t racletty-mc:ci .
+      - name: Create private integration bucket
+        run: |
+          docker run --rm -d --name racletty-ci-minio --network host \
+            -e MINIO_ROOT_USER="$RACLETTY_TEST_S3_ACCESS_KEY" -e MINIO_ROOT_PASSWORD="$RACLETTY_TEST_S3_SECRET_KEY" \
+            racletty-minio:ci server /data
+          ready=0
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --output /dev/null http://127.0.0.1:9000/minio/health/ready; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" = 1
+          docker run --rm --network host \
+            -e MC_ACCESS_KEY="$RACLETTY_TEST_S3_ACCESS_KEY" \
+            -e MC_SECRET_KEY="$RACLETTY_TEST_S3_SECRET_KEY" \
+            --entrypoint /bin/sh racletty-mc:ci -ec '
+              mc alias set ci http://127.0.0.1:9000 "$MC_ACCESS_KEY" "$MC_SECRET_KEY"
+              mc mb --ignore-existing ci/racletty-private
+              mc ls ci/racletty-private >/dev/null
+            '
+      - run: dotnet test Backend.Tests/Racletty.Api.IntegrationTests.csproj --configuration Release
+        env:
+          RACLETTY_TEST_ADMIN_CONNECTION: Host=localhost;Port=5837;Database=postgres;Username=racletty
+          RACLETTY_TEST_S3_ENDPOINT: http://127.0.0.1:9000
+          RACLETTY_TEST_S3_ACCESS_KEY: ${{ env.RACLETTY_TEST_S3_ACCESS_KEY }}
+          RACLETTY_TEST_S3_SECRET_KEY: ${{ env.RACLETTY_TEST_S3_SECRET_KEY }}
+      - name: Stop integration MinIO
+        if: always()
+        run: docker stop racletty-ci-minio || true
+      - run: docker compose -p racletty-ci --env-file .env.production.example -f docker-compose.production.yml -f docker-compose.production.local.yml config -q
+      - run: docker build -f Frontend/Dockerfile.production -t racletty-frontend:ci .
+      - run: docker build -t racletty-api:ci ./Backend
+      - run: docker build -f deploy/minio-bootstrap.Dockerfile -t racletty-minio-bootstrap:ci .
+      - run: docker build -f deploy/backup-tools.Dockerfile -t racletty-backup-tools:ci .
+      - name: Smoke test the production Compose stack
+        env:
+          APP_DOMAIN: app.localhost
+          FILES_DOMAIN: files.localhost
+          APP_ORIGIN: https://app.localhost:18443
+          FILES_PUBLIC_ENDPOINT: https://files.localhost:18443
+          HTTP_PORT: "18080"
+          HTTPS_PORT: "18443"
+          PROXY_NETWORK: 172.31.0.0/24
+        run: |
+          set -euo pipefail
+          docker tag racletty-frontend:ci racletty-frontend:local
+          docker tag racletty-api:ci racletty-api:local
+          docker tag racletty-minio:ci racletty-minio:local
+          docker tag racletty-minio-bootstrap:ci racletty-minio-bootstrap:local
+          docker tag racletty-backup-tools:ci racletty-backup-tools:local
+          cleanup() {
+            docker compose -p racletty-ci-production --env-file .env.production.example -f docker-compose.production.yml -f docker-compose.production.local.yml down -v --remove-orphans
+          }
+          trap cleanup EXIT
+          docker compose -p racletty-ci-production --env-file .env.production.example -f docker-compose.production.yml -f docker-compose.production.local.yml up -d --no-build --wait --wait-timeout 180
+          TLS_INSECURE=1 sh deploy/smoke-test.sh

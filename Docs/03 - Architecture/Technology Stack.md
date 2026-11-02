@@ -48,7 +48,7 @@ The terms in this document have the following meaning:
 | Application language | C# on a supported .NET release | Baseline | Strong typing, mature tooling and long-term maintainability |
 | Relational database | PostgreSQL | Baseline | Reliable transactional storage, indexing and JSON support without changing the relational system of record |
 | Data access | Entity Framework Core | Baseline | Version-controlled migrations and integration with the .NET application |
-| Object storage | MinIO through the S3 API | Selected | Simple S3-compatible development and pilot storage; reassess before production launch |
+| Object storage | MinIO through the S3 API | Selected for development and controlled alpha | S3-compatible local and alpha storage; reassess before broader production because the community source project is archived |
 | IFC processing | Isolated processing worker | Selected | Long-running and resource-intensive work must remain outside interactive API requests |
 | IFC toolkit | IfcOpenShell or validated equivalent | Candidate | Broad IFC capability, subject to licensing, supported-schema and output-quality validation |
 | Worker language | Python or .NET, selected by the IFC spike | Candidate | The IFC toolchain should drive the runtime decision rather than stack uniformity alone |
@@ -169,7 +169,7 @@ PostgreSQL JSON columns may hold bounded metadata whose structure is external or
 
 ### Selected implementation
 
-MinIO will provide S3-compatible object storage during development and the initial pilot.
+MinIO provides S3-compatible object storage during development and the controlled alpha. The deployment builds the final upstream security-fixed community release from source; reconsider the provider before broader production use.
 
 The application must access storage through a narrow adapter that supports:
 

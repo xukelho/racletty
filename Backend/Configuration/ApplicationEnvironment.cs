@@ -12,6 +12,6 @@ public static class ApplicationEnvironment
             Development or "dev" => Development,
             Testing or "test" => Testing,
             Production or "prod" => Production,
-            _ => Development 
+            _ => Production
         };
 }

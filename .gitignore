@@ -12,6 +12,8 @@
 .env
 .env.*
 !.env.example
+!.env.production.example
+!.env.portainer.example
 *.user
 .vs/
 .vscode/

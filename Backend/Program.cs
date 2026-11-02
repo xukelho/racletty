@@ -5,11 +5,51 @@ using Racletty.Api.Services;
 using Racletty.Api.Storage;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsProduction())
+{
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.ForwardLimit = 1;
+        var proxyNetwork = builder.Configuration["PROXY_NETWORK"];
+        if (string.IsNullOrWhiteSpace(proxyNetwork) || !System.Net.IPNetwork.TryParse(proxyNetwork, out var parsedNetwork))
+            throw new InvalidOperationException("A valid PROXY_NETWORK is required in production.");
+        options.KnownIPNetworks.Add(parsedNetwork);
+    });
+}
+
 builder.Services.AddOpenApi();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    var permitLimit = builder.Environment.IsProduction() ? 10 : 1000;
+    options.AddPolicy("authentication-login", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+});
+
+if (builder.Environment.IsProduction())
+{
+    var keyPath = builder.Configuration["DataProtection:KeysPath"]
+        ?? throw new InvalidOperationException("DataProtection:KeysPath is required in production.");
+    Directory.CreateDirectory(keyPath);
+    builder.Services.AddDataProtection()
+        .SetApplicationName("Racletty")
+        .PersistKeysToFileSystem(new DirectoryInfo(keyPath));
+}
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
@@ -45,7 +85,9 @@ builder.Services
         options.Cookie.Name = "racletty.session";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Strict;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Cookie.SecurePolicy = builder.Environment.IsProduction()
+            ? CookieSecurePolicy.Always
+            : CookieSecurePolicy.SameAsRequest;
         options.Events.OnRedirectToLogin = context =>
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -61,9 +103,21 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+if (app.Environment.IsProduction())
+{
+    app.UseForwardedHeaders();
+    app.UseExceptionHandler(handler => handler.Run(context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        return context.Response.WriteAsJsonAsync(new { error = "An unexpected error occurred." });
+    }));
+}
+
+app.UseRateLimiter();
+
 await DatabaseInitializer.InitializeAsync(app.Services);
 
-app.MapOpenApi();
+if (!app.Environment.IsProduction()) app.MapOpenApi();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHealthEndpoints();

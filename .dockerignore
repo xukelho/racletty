@@ -9,3 +9,8 @@ Database
 Docs
 *.md
 *.tsbuildinfo
+.env*
+*.pem
+*.key
+secrets/
+backups/
