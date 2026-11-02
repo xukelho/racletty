@@ -122,6 +122,7 @@ Production API security behavior, admin authorization, health/readiness behavior
 - The supplied sample's `traefik_public`, `websecure`, and `le` values were used as assumptions. The user reported Traefik is running but cannot inspect its configuration. The Swarm stack has not been deployed against the live server; Jeimerson must confirm those values and the free `PROXY_NETWORK` subnet.
 - GitHub Actions exposed that MinIO no longer serves the pinned `minio/mc` Docker Hub image. Replaced that dependency with the verified MinIO Client 2025-08-13 Linux AMD64 release binary, downloaded using its published SHA-256; CI builds and runs it as a local image, and the release workflow publishes an immutable GHCR image for Portainer backup metadata.
 - Removed the `mc anonymous set none` bootstrap command after CI showed the current MinIO server rejects that legacy policy endpoint. Newly created buckets remain private by default, and the bootstrap attaches only the application's scoped policy and service account.
+- Aligned the CI S3 endpoint with the MinIO readiness and bucket-creation address (`127.0.0.1`); the previous `localhost` endpoint reached MinIO without the test bucket in the GitHub runner. Added the MinIO error body to the upload assertion for future diagnosis.
 
 ### 2026-10 — Initial production preparation
 

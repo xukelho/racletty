@@ -67,7 +67,7 @@ jobs:
       - run: dotnet test Backend.Tests/Racletty.Api.IntegrationTests.csproj --configuration Release
         env:
           RACLETTY_TEST_ADMIN_CONNECTION: Host=localhost;Port=5837;Database=postgres;Username=racletty
-          RACLETTY_TEST_S3_ENDPOINT: http://localhost:9000
+          RACLETTY_TEST_S3_ENDPOINT: http://127.0.0.1:9000
           RACLETTY_TEST_S3_ACCESS_KEY: ${{ env.RACLETTY_TEST_S3_ACCESS_KEY }}
           RACLETTY_TEST_S3_SECRET_KEY: ${{ env.RACLETTY_TEST_S3_SECRET_KEY }}
       - name: Stop integration MinIO
