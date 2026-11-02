@@ -25,6 +25,8 @@ Run from the repository root with Docker Engine and Compose installed:
 4. Run `set -a; . .env.production.local; set +a; TLS_INSECURE=1 sh deploy/smoke-test.sh` from the repository root.
 5. Inspect using the same Compose arguments followed by `ps` or `logs -f api caddy minio-bootstrap`. Stop with `stop`. Use `down -v` only when you intend to delete this local production test data.
 
+The local stack itself does not need the MinIO client helper image. To run the packaged backup helper locally, build it with `docker build -f deploy/minio-client.Dockerfile -t racletty-mc:local .`; the sample environment already points `MINIO_MC_IMAGE` at that tag.
+
 The local stack remains separate from the Swarm stack file and from development `docker-compose.yml`.
 
 ## Requirements before deployment

@@ -120,6 +120,7 @@ Production API security behavior, admin authorization, health/readiness behavior
 - Changed the GHCR release frontend build to use the Swarm/Traefik Caddyfile; release bundles now include the Swarm stack file.
 - Updated backup tooling and restore metadata to archive the Swarm stack definition, adjusted temporary recovery stacks for Swarm volume/network names, and updated the operations guide and plan.
 - The supplied sample's `traefik_public`, `websecure`, and `le` values were used as assumptions. The user reported Traefik is running but cannot inspect its configuration. The Swarm stack has not been deployed against the live server; Jeimerson must confirm those values and the free `PROXY_NETWORK` subnet.
+- GitHub Actions exposed that MinIO no longer serves the pinned `minio/mc` Docker Hub image. Replaced that dependency with the verified MinIO Client 2025-08-13 Linux AMD64 release binary, downloaded using its published SHA-256; CI builds and runs it as a local image, and the release workflow publishes an immutable GHCR image for Portainer backup metadata.
 
 ### 2026-10 — Initial production preparation
 

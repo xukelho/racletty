@@ -71,6 +71,19 @@ jobs:
           tags: ${{ steps.minio_meta.outputs.tags }}
           labels: ${{ steps.minio_meta.outputs.labels }}
       - uses: docker/metadata-action@v5
+        id: mc_meta
+        with:
+          images: ${{ steps.release.outputs.namespace }}-mc
+          tags: type=raw,value=${{ steps.release.outputs.commit }}
+      - uses: docker/build-push-action@v6
+        id: mc_image
+        with:
+          context: .
+          file: deploy/minio-client.Dockerfile
+          push: true
+          tags: ${{ steps.mc_meta.outputs.tags }}
+          labels: ${{ steps.mc_meta.outputs.labels }}
+      - uses: docker/metadata-action@v5
         id: bootstrap_meta
         with:
           images: ${{ steps.release.outputs.namespace }}-minio-bootstrap
@@ -103,6 +116,7 @@ jobs:
           API_DIGEST: ${{ steps.api_image.outputs.digest }}
           FRONTEND_DIGEST: ${{ steps.frontend_image.outputs.digest }}
           MINIO_DIGEST: ${{ steps.minio_image.outputs.digest }}
+          MC_DIGEST: ${{ steps.mc_image.outputs.digest }}
           BOOTSTRAP_DIGEST: ${{ steps.bootstrap_image.outputs.digest }}
           BACKUP_DIGEST: ${{ steps.backup_image.outputs.digest }}
         run: |
@@ -117,7 +131,7 @@ jobs:
           BACKUP_TOOLS_IMAGE=$IMAGE_NAMESPACE-backup-tools@$BACKUP_DIGEST
           POSTGRES_IMAGE=postgres:17.11-alpine3.24@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
           MINIO_IMAGE=$IMAGE_NAMESPACE-minio@$MINIO_DIGEST
-          MINIO_MC_IMAGE=minio/mc:RELEASE.2025-08-13T08-35-41Z@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
+          MINIO_MC_IMAGE=$IMAGE_NAMESPACE-mc@$MC_DIGEST
           EOF
           tar -C bundle -czf "racletty-portainer-$COMMIT.tar.gz" .
       - uses: actions/upload-artifact@v4
