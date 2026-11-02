@@ -1,0 +1,46 @@
+# Temporary recovery helper. Deploy this as a separate Portainer Stack while
+# the target Racletty stack is stopped for maintenance. It mounts only the
+# named target volumes and internal database network supplied by the operator.
+version: "3.8"
+
+services:
+  restore-tools:
+    image: ${BACKUP_TOOLS_IMAGE:?Set BACKUP_TOOLS_IMAGE to the backup-tools digest from the release manifest}
+    command: ["sh", "-c", "while :; do sleep 3600; done"]
+    environment:
+      PGHOST: db
+      PGPORT: "7584"
+      PGDATABASE: racletty
+      PGUSER: racletty
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      AGE_IDENTITY: ${AGE_IDENTITY:-}
+      RESTORE_FILE: ${RESTORE_FILE:-}
+      RESTORE_CONFIRMATION: ${RESTORE_CONFIRMATION:-}
+      BACKUP_REMOTE: ${BACKUP_REMOTE:-}
+      RCLONE_CONFIG_CONTENT: ${RCLONE_CONFIG_CONTENT:-}
+      RACLETTY_STACK_NAME: ${RACLETTY_TARGET_STACK:?Set RACLETTY_TARGET_STACK to the target stack name}
+    volumes:
+      - target-backups:/backups
+      - target-minio:/restore/minio
+      - target-data-protection:/restore/data-protection
+    networks: [target-data]
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+
+volumes:
+  target-backups:
+    external: true
+    name: ${RACLETTY_TARGET_STACK:?Set RACLETTY_TARGET_STACK}_backup-data
+  target-minio:
+    external: true
+    name: ${RACLETTY_TARGET_STACK:?Set RACLETTY_TARGET_STACK}_minio-data
+  target-data-protection:
+    external: true
+    name: ${RACLETTY_TARGET_STACK:?Set RACLETTY_TARGET_STACK}_data-protection
+
+networks:
+  target-data:
+    external: true
+    name: ${RACLETTY_TARGET_STACK:?Set RACLETTY_TARGET_STACK}_data

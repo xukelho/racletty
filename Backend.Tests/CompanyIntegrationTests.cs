@@ -7,8 +7,12 @@ namespace Racletty.Api.IntegrationTests;
 
 public sealed class CompanyIntegrationTests(
     PostgreSqlApiFixture fixture)
-    : IClassFixture<PostgreSqlApiFixture>
+    : IClassFixture<PostgreSqlApiFixture>, IAsyncLifetime
 {
+    public Task InitializeAsync() => fixture.LoginAsSeededAdminAsync();
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
     [Fact]
     public async Task StorageQuotaIsOwnerOnlyAndReservesUploadsAtTheExactLimit()
     {
@@ -110,9 +114,14 @@ public sealed class CompanyIntegrationTests(
         var invalidBody = await invalid.Content.ReadFromJsonAsync<JsonElement>();
         Assert.True(invalidBody.GetProperty("errors").TryGetProperty("name", out _));
 
+        using var forbiddenDeactivate = await fixture.Client.DeleteAsync(
+            $"/api/admin/companies/{companyId}");
+        Assert.Equal(HttpStatusCode.Forbidden, forbiddenDeactivate.StatusCode);
+        await fixture.LoginAsSeededAdminAsync();
         using var deactivate = await fixture.Client.DeleteAsync(
             $"/api/admin/companies/{companyId}");
         Assert.Equal(HttpStatusCode.NoContent, deactivate.StatusCode);
+        await LoginAsync("company.employee");
         using var inactive = await fixture.Client.GetAsync("/api/company");
         Assert.Equal(HttpStatusCode.NotFound, inactive.StatusCode);
     }

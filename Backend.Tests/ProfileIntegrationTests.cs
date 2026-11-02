@@ -6,8 +6,12 @@ namespace Racletty.Api.IntegrationTests;
 
 public sealed class ProfileIntegrationTests(
     PostgreSqlApiFixture fixture)
-    : IClassFixture<PostgreSqlApiFixture>
+    : IClassFixture<PostgreSqlApiFixture>, IAsyncLifetime
 {
+    public Task InitializeAsync() => fixture.LoginAsSeededAdminAsync();
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
     [Fact]
     public async Task ProfileRequiresSessionAndLogoutRevokesIt()
     {

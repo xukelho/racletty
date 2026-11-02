@@ -1,0 +1,29 @@
+# Local build overlay for the image-only production stack. Portainer and release
+# bundles use docker-compose.production.yml without this file.
+services:
+  caddy:
+    build:
+      context: .
+      dockerfile: Frontend/Dockerfile.production
+      args:
+        VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-}
+        CADDY_CONFIG: deploy/Caddyfile
+
+  api:
+    build:
+      context: ./Backend
+
+  minio-bootstrap:
+    build:
+      context: .
+      dockerfile: deploy/minio-bootstrap.Dockerfile
+
+  minio:
+    build:
+      context: .
+      dockerfile: deploy/minio.Dockerfile
+
+  backup-tools:
+    build:
+      context: .
+      dockerfile: deploy/backup-tools.Dockerfile

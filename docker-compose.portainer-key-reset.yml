@@ -1,0 +1,22 @@
+# Temporary, isolated helper for invalidating existing authentication cookies.
+# Use only after replacing the seeded administrator and before testers join.
+version: "3.8"
+
+services:
+  key-reset-tools:
+    image: ${BACKUP_TOOLS_IMAGE:?Set BACKUP_TOOLS_IMAGE from the selected release.env}
+    command: ["sh", "-c", "while :; do sleep 3600; done"]
+    environment:
+      RACLETTY_STACK_NAME: ${RACLETTY_TARGET_STACK:?Set RACLETTY_TARGET_STACK to the target stack name}
+      KEY_RESET_CONFIRMATION: ${KEY_RESET_CONFIRMATION:-}
+    volumes:
+      - target-data-protection:/reset/data-protection
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+
+volumes:
+  target-data-protection:
+    external: true
+    name: ${RACLETTY_TARGET_STACK:?Set RACLETTY_TARGET_STACK}_data-protection

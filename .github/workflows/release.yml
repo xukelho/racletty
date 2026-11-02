@@ -1,0 +1,127 @@
+name: Publish Portainer release
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+  packages: write
+jobs:
+  publish:
+    if: github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Set image namespace and commit
+        id: release
+        env:
+          COMMIT: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          echo "namespace=ghcr.io/$(printf '%s' "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+          echo "commit=$COMMIT" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@v5
+        id: api_meta
+        with:
+          images: ${{ steps.release.outputs.namespace }}-api
+          tags: type=raw,value=${{ steps.release.outputs.commit }}
+      - uses: docker/build-push-action@v6
+        id: api_image
+        with:
+          context: ./Backend
+          push: true
+          tags: ${{ steps.api_meta.outputs.tags }}
+          labels: ${{ steps.api_meta.outputs.labels }}
+      - uses: docker/metadata-action@v5
+        id: frontend_meta
+        with:
+          images: ${{ steps.release.outputs.namespace }}-frontend
+          tags: type=raw,value=${{ steps.release.outputs.commit }}
+      - uses: docker/build-push-action@v6
+        id: frontend_image
+        with:
+          context: .
+          file: Frontend/Dockerfile.production
+          push: true
+          tags: ${{ steps.frontend_meta.outputs.tags }}
+          labels: ${{ steps.frontend_meta.outputs.labels }}
+          build-args: |
+            VITE_GOOGLE_MAPS_API_KEY=${{ vars.VITE_GOOGLE_MAPS_API_KEY }}
+            CADDY_CONFIG=deploy/Caddyfile.swarm
+      - uses: docker/metadata-action@v5
+        id: minio_meta
+        with:
+          images: ${{ steps.release.outputs.namespace }}-minio
+          tags: type=raw,value=${{ steps.release.outputs.commit }}
+      - uses: docker/build-push-action@v6
+        id: minio_image
+        with:
+          context: .
+          file: deploy/minio.Dockerfile
+          push: true
+          tags: ${{ steps.minio_meta.outputs.tags }}
+          labels: ${{ steps.minio_meta.outputs.labels }}
+      - uses: docker/metadata-action@v5
+        id: bootstrap_meta
+        with:
+          images: ${{ steps.release.outputs.namespace }}-minio-bootstrap
+          tags: type=raw,value=${{ steps.release.outputs.commit }}
+      - uses: docker/build-push-action@v6
+        id: bootstrap_image
+        with:
+          context: .
+          file: deploy/minio-bootstrap.Dockerfile
+          push: true
+          tags: ${{ steps.bootstrap_meta.outputs.tags }}
+          labels: ${{ steps.bootstrap_meta.outputs.labels }}
+      - uses: docker/metadata-action@v5
+        id: backup_meta
+        with:
+          images: ${{ steps.release.outputs.namespace }}-backup-tools
+          tags: type=raw,value=${{ steps.release.outputs.commit }}
+      - uses: docker/build-push-action@v6
+        id: backup_image
+        with:
+          context: .
+          file: deploy/backup-tools.Dockerfile
+          push: true
+          tags: ${{ steps.backup_meta.outputs.tags }}
+          labels: ${{ steps.backup_meta.outputs.labels }}
+      - name: Assemble Portainer release bundle
+        env:
+          IMAGE_NAMESPACE: ${{ steps.release.outputs.namespace }}
+          COMMIT: ${{ steps.release.outputs.commit }}
+          API_DIGEST: ${{ steps.api_image.outputs.digest }}
+          FRONTEND_DIGEST: ${{ steps.frontend_image.outputs.digest }}
+          MINIO_DIGEST: ${{ steps.minio_image.outputs.digest }}
+          BOOTSTRAP_DIGEST: ${{ steps.bootstrap_image.outputs.digest }}
+          BACKUP_DIGEST: ${{ steps.backup_image.outputs.digest }}
+        run: |
+          mkdir -p bundle
+          cp docker-stack.production.yml docker-compose.production.yml docker-compose.portainer-restore.yml docker-compose.portainer-key-reset.yml .env.portainer.example bundle/
+          cp 'Docs/04 - Operations/Alpha Deployment.md' bundle/
+          cat > bundle/release.env <<EOF
+          COMMIT=$COMMIT
+          API_IMAGE=$IMAGE_NAMESPACE-api@$API_DIGEST
+          FRONTEND_IMAGE=$IMAGE_NAMESPACE-frontend@$FRONTEND_DIGEST
+          MINIO_BOOTSTRAP_IMAGE=$IMAGE_NAMESPACE-minio-bootstrap@$BOOTSTRAP_DIGEST
+          BACKUP_TOOLS_IMAGE=$IMAGE_NAMESPACE-backup-tools@$BACKUP_DIGEST
+          POSTGRES_IMAGE=postgres:17.11-alpine3.24@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
+          MINIO_IMAGE=$IMAGE_NAMESPACE-minio@$MINIO_DIGEST
+          MINIO_MC_IMAGE=minio/mc:RELEASE.2025-08-13T08-35-41Z@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
+          EOF
+          tar -C bundle -czf "racletty-portainer-$COMMIT.tar.gz" .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: racletty-portainer-${{ steps.release.outputs.commit }}
+          path: racletty-portainer-${{ steps.release.outputs.commit }}.tar.gz
+          retention-days: 90

@@ -18,7 +18,9 @@ public sealed class MinioObjectStoreIntegrationTests
         var options = new ObjectStorageOptions
         {
             Endpoint = endpoint, Region = "us-east-1", Bucket = "racletty-private",
-            AccessKey = "racletty_dev", SecretKey = "racletty_dev_password", ForcePathStyle = true
+            AccessKey = Environment.GetEnvironmentVariable("RACLETTY_TEST_S3_ACCESS_KEY") ?? "racletty_dev",
+            SecretKey = Environment.GetEnvironmentVariable("RACLETTY_TEST_S3_SECRET_KEY") ?? "racletty_dev_password",
+            ForcePathStyle = true
         };
         using var client = new AmazonS3Client(new BasicAWSCredentials(options.AccessKey, options.SecretKey), new AmazonS3Config
         {
