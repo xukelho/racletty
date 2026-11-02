@@ -64,7 +64,6 @@ jobs:
           test "$ready" = 1
           docker run --rm --network host racletty-mc:ci alias set ci http://127.0.0.1:9000 "$RACLETTY_TEST_S3_ACCESS_KEY" "$RACLETTY_TEST_S3_SECRET_KEY"
           docker run --rm --network host racletty-mc:ci mb --ignore-existing ci/racletty-private
-          docker run --rm --network host racletty-mc:ci anonymous set none ci/racletty-private
       - run: dotnet test Backend.Tests/Racletty.Api.IntegrationTests.csproj --configuration Release
         env:
           RACLETTY_TEST_ADMIN_CONNECTION: Host=localhost;Port=5837;Database=postgres;Username=racletty

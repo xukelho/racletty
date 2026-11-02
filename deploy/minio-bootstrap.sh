@@ -2,7 +2,6 @@
 set -eu
 mc alias set local http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" >/dev/null
 mc mb --ignore-existing local/racletty-private
-mc anonymous set none local/racletty-private
 mc admin policy create local racletty-app /opt/racletty/minio-app-policy.json 2>/dev/null || {
   mc admin policy info local racletty-app >/dev/null
 }
