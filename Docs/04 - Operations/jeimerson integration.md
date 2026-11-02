@@ -91,7 +91,7 @@ The following test fixture and integration-test files were adjusted for authenti
 - [`Docs/03 - Architecture/Technology Stack.md`](../03%20-%20Architecture/Technology%20Stack.md) — updated MinIO status/rationale for controlled alpha.
 - This ledger, `jeimerson integration.md`, records the deployment changes and migration considerations for future server changes.
 
-The current working tree also contains unrelated product work: notification routing/UI updates in `Frontend/src/api/notificationDestination.ts`, its test, `Frontend/src/components/NotificationList.tsx`, its test, `Frontend/src/pages/ClientNotificationsPage.test.tsx`, and `Frontend/src/styles.css`. Do not revert these changes when removing or changing this server integration.
+The PR also adjusts `Frontend/src/pages/ClientNotificationsPage.test.tsx` to wait for the asynchronous mark-read callback instead of asserting a class change on a DOM node captured before React rerenders. CI failed that existing assertion twice; this test-only stabilization is included so the PR check can complete. Other notification routing/UI edits in `Frontend/src/api/notificationDestination.ts`, its test, `Frontend/src/components/NotificationList.tsx`, its test, and `Frontend/src/styles.css` remain separate product work and are not in the PR. Do not revert them when removing or changing this server integration.
 
 ## What to revisit for Ricardo's own server
 
