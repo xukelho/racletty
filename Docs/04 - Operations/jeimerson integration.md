@@ -4,7 +4,7 @@ Status: Active integration ledger
 
 Owner: Ricardo Coelho
 
-Last updated: 2026-11-02
+Last updated: 2026-11-03
 
 ## Purpose and maintenance rule
 
@@ -30,7 +30,7 @@ This is a record of repository changes and intended operation. It does not imply
 
 | File | Change and purpose | Portability when moving servers |
 | --- | --- | --- |
-| [`docker-stack.production.yml`](../../docker-stack.production.yml) | Added the image-only Swarm stack. Defines frontend, API, PostgreSQL, MinIO, MinIO bootstrap, and backup tools; named persistent volumes; resource limits; manager placement; restart policies; health checks; and private overlays. The frontend joins external `traefik_public` and carries Traefik Swarm labels for both hostnames, HTTPS, the `le` resolver, HTTP-to-HTTPS redirection, and internal port 80. | Swarm structure and Traefik labels are Jeimerson-target-specific. On another Swarm/Traefik host, confirm network, entrypoint, resolver, and placement. On standalone Docker, use a Compose stack and proxy configuration suitable for that host instead. |
+| [`docker-stack.production.yml`](../../docker-stack.production.yml) | Added the image-only Swarm stack. Defines frontend, API, PostgreSQL, MinIO, MinIO bootstrap, and backup tools; named persistent volumes; resource limits; manager placement; restart policies; health checks; and private overlays. The frontend joins external `traefik_public` and carries Traefik Swarm labels for both hostnames, HTTPS, the `le` resolver, HTTP-to-HTTPS redirection, and internal port 80. MinIO advertises a network-scoped `minio` DNS alias on `app_network` and `data`, so Caddy and the API can resolve the configured `minio:9000` endpoint despite Swarm's stack-prefixed service names. | Swarm structure, aliases, and Traefik labels are deployment-specific. On another Swarm/Traefik host, confirm network, entrypoint, resolver, placement, and service DNS names. On standalone Docker, use a Compose stack and proxy configuration suitable for that host instead. |
 | [`deploy/Caddyfile.swarm`](../../deploy/Caddyfile.swarm) | Added the frontend configuration used behind Traefik: serves static assets, forwards API and file-storage requests, handles file CORS, and trusts the proxy layer for client address forwarding. It does not issue public certificates; Traefik does that. | Keep if the new server uses Traefik with the same HTTP-to-frontend arrangement. Replace or adjust if the new server uses Caddy for public TLS, nginx, or another proxy. |
 | [`.env.portainer.example`](../../.env.portainer.example) | Added Portainer stack variable template for domains, image references, database/MinIO credentials, backup settings, and the `PROXY_NETWORK` CIDR used by the API to trust forwarded headers. The example CIDR must be checked for conflicts by the Swarm administrator. | Host-specific values, network CIDR, credentials, domains, and image references must be set again. Never copy the filled-in values into source control. |
 | [`docker-compose.portainer-restore.yml`](../../docker-compose.portainer-restore.yml) | Added a temporary Swarm recovery stack that mounts the target stack's named volumes and internal data network for restore operations. | Depends on Swarm-generated stack volume/network names and the target stack name. Rework for a different orchestrator, volume driver, or stack naming convention. |
@@ -98,7 +98,7 @@ The PR also adjusts `Frontend/src/pages/ClientNotificationsPage.test.tsx` to wai
 ### Server-specific items to replace or confirm
 
 1. **Ingress/proxy:** decide whether the new host uses Traefik, Caddy, nginx, or another edge proxy. For Traefik, change `traefik_public`, entrypoints, resolver, TLS labels, and any redirect policy in `docker-stack.production.yml` to match that host. For standalone Caddy, use a matching image built with `deploy/Caddyfile` and the standalone `docker-compose.production.yml`; the existing release GHCR frontend image is the Swarm/Traefik variant and is not interchangeable with the standalone Caddy image.
-2. **Orchestrator:** if the new server is Docker standalone, use Compose rather than `docker stack deploy`; remove Swarm-only `deploy` behavior and overlay-network assumptions. The current local production Compose files show the starting standalone topology, but are configured for local diagnostics. If the new server is another Swarm, retain the stack format and check the external proxy network and placement constraints.
+2. **Orchestrator:** if the new server is Docker standalone, use Compose rather than `docker stack deploy`; remove Swarm-only `deploy` behavior and overlay-network assumptions. The current local production Compose files show the starting standalone topology, but are configured for local diagnostics. If the new server is another Swarm, retain the stack format and check the external proxy network, placement constraints, and service DNS aliases (the current stack uses the `minio` alias on both caller networks).
 3. **Proxy network:** select a non-overlapping CIDR and set `PROXY_NETWORK` to the actual network from which the API receives forwarded requests. Update Caddy's trusted-proxy configuration if the upstream proxy network is not covered appropriately.
 4. **Persistent storage:** decide whether to keep the app-managed PostgreSQL and MinIO services. Preserve database, object data, data-protection keys, and backup volumes across app releases. If using external database/object storage, update endpoints, credentials, network access, backup/restore helpers, and the runbook.
 5. **Registry:** GHCR image paths are generated from the GitHub repository and digests appear in each release artifact. Configure the new server's registry access or choose a different registry. Never replace digest-pinned release references with an unverified mutable tag for a production deployment.
@@ -112,6 +112,12 @@ The PR also adjusts `Frontend/src/pages/ClientNotificationsPage.test.tsx` to wai
 Production API security behavior, admin authorization, health/readiness behavior, non-root API image, pinned build inputs, private object-storage policy, immutable release image identities, encrypted backups, restore validation, and local production-mode builds are application/deployment foundations rather than Jeimerson-specific networking. Keep them unless the application's runtime, security model, or storage architecture changes.
 
 ## Change history
+
+### 2026-11-03 — MinIO service discovery fix
+
+- Added a network-scoped `minio` alias for the MinIO service on `app_network` and `data`. This lets the frontend Caddy proxy and API resolve their existing `minio:9000` upstreams in the stack-prefixed Docker Swarm service namespace.
+- Diagnosed from the deployed frontend logs: Caddy returned 502 because Docker DNS reported `lookup minio ... no such host`. The API uses the same internal storage hostname for metadata verification, so the alias covers both the browser PUT proxy and upload completion.
+- The updated stack definition must be redeployed through Portainer. No frontend or API image rebuild is needed for this network alias change.
 
 ### 2026-11-02 — Swarm and Traefik adaptation
 
