@@ -2,9 +2,11 @@
 
 Status: Repository deployment path prepared for Docker Swarm and Portainer Stack UI; external infrastructure remains operator setup
 
-Last updated: 2026-11-02
+Last updated: 2026-11-04
 
 This runbook covers the single VPS allocation using Docker Swarm, the existing Traefik instance, and Portainer's Stack UI. It does not require SSH or host shell access. GitHub Actions builds and publishes immutable images to GHCR; Portainer pulls those images when you deploy. The app stack contains its own PostgreSQL 17.11 and MinIO services. Only the frontend is routed through Traefik; the API, database, MinIO, and backup tools have no public ports. Local production-mode builds remain available through Docker Compose.
+
+For the Docker Hub alternative that builds images from the operator machine and deploys two Portainer stacks (PostgreSQL 18 plus the application), see [Docker Hub and Portainer Deployment](Docker%20Hub%20Deployment.md). The two paths must not share stack names or volumes.
 
 The stack assumes the external Swarm overlay network is named `traefik_public`, the Traefik entrypoints are `web` and `websecure`, and its Let's Encrypt resolver is named `le`, matching the supplied template. The friend who manages Traefik must confirm these exact names and make sure the network is attached to Traefik. The stack creates its own private `app_network`, `proxy`, and `data` overlay networks.
 

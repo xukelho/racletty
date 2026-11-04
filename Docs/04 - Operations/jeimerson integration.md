@@ -4,7 +4,7 @@ Status: Active integration ledger
 
 Owner: Ricardo Coelho
 
-Last updated: 2026-11-02
+Last updated: 2026-11-04
 
 ## Purpose and maintenance rule
 
@@ -19,9 +19,10 @@ This is a record of repository changes and intended operation. It does not imply
 - Portainer Stack UI connected to a Docker Swarm manager. The operator does not have SSH or host shell access.
 - Traefik is already running and controlled by Jeimerson. The stack currently expects the external overlay network `traefik_public`, entrypoints `web` and `websecure`, and certificate resolver `le`, based on the supplied template. These exact live values still need confirmation from Jeimerson.
 - Traefik owns public ports 80 and 443 and terminates public TLS. Racletty's Caddy frontend serves HTTP within the Swarm and is reached through Traefik.
-- The Racletty stack supplies its own PostgreSQL 17.11 and MinIO services. It does not use the sample `postgresql16` service or an existing Postgres database.
-- The stack creates its own private overlay networks and persistent volumes. Services are constrained to a manager node, matching the one-VPS allocation and local volume storage.
-- GitHub Actions builds the images, publishes them to GHCR, and packages a Portainer release artifact. Portainer pulls the images; it does not build them.
+- The current Jeimerson deployment uses two Portainer stacks: a PostgreSQL 18 stack and a separate application stack. They share the existing external `app_network`; the application stack supplies MinIO and its persistent data volume. The earlier single-stack PostgreSQL 17.11/GHCR deployment remains a separate option described in the Alpha Deployment runbook.
+- Traefik routes the app and files hostnames to Caddy. The app stack creates private `proxy`, `data` and `storage` overlays; `storage` connects Caddy to MinIO for direct file uploads, while `app_network` connects the API to PostgreSQL.
+- The Jeimerson Docker Hub path builds six images on the operator's machine and pushes them to the `hammebsb` Docker Hub namespace. Portainer pulls those versioned images; it does not build them. The GHCR/GitHub Actions path remains separate, and the two paths must not share stack names or volumes.
+- Credentials are supplied through Portainer environment values and are not stored in the committed stack files. Credentials that appeared as literal values in the supplied archive must be rotated before deployment.
 - The app retains the seeded `Admin` account. The operator replaces/deletes it before allowing testers in, then resets persisted data-protection keys to invalidate bootstrap sessions.
 
 ## Change inventory
@@ -30,7 +31,11 @@ This is a record of repository changes and intended operation. It does not imply
 
 | File | Change and purpose | Portability when moving servers |
 | --- | --- | --- |
-| [`docker-stack.production.yml`](../../docker-stack.production.yml) | Added the image-only Swarm stack. Defines frontend, API, PostgreSQL, MinIO, MinIO bootstrap, and backup tools; named persistent volumes; resource limits; manager placement; restart policies; health checks; and private overlays. The frontend joins external `traefik_public` and carries Traefik Swarm labels for both hostnames, HTTPS, the `le` resolver, HTTP-to-HTTPS redirection, and internal port 80. | Swarm structure and Traefik labels are Jeimerson-target-specific. On another Swarm/Traefik host, confirm network, entrypoint, resolver, and placement. On standalone Docker, use a Compose stack and proxy configuration suitable for that host instead. |
+| [`docker-stack.production.yml`](../../docker-stack.production.yml) | Defines the original single-stack Swarm option and now references the versioned Docker Hub images. MinIO advertises a network-scoped `minio` alias on `app_network` and `data`, so Caddy and the API can resolve `minio:9000` despite the Swarm stack prefix. | The GHCR and Docker Hub stack options are separate deployment paths. Confirm the selected registry, external Traefik network, labels and DNS names on another server; do not reuse stack names or volumes across the two paths. |
+| [`portainer/postgresql18.yaml`](../../portainer/postgresql18.yaml) | Added the separate PostgreSQL 18 stack on Jeimerson's existing external `app_network`, using port 7584, its own named volume, and the `postgres18` network alias for cross-stack API/backup access despite the Swarm stack prefix. The password is required from Portainer environment settings. | PostgreSQL major version, service name/alias, port, external network, volume and resource limits reflect Jeimerson's host. Confirm compatibility and backups before moving or upgrading it. |
+| [`portainer/ricardo_app.yaml`](../../portainer/ricardo_app.yaml) | Added the application stack with Docker Hub image tags, external `traefik_public` and `app_network`, private `proxy`/`data`/`storage` overlays, persistent MinIO/Data Protection/backup volumes, and the existing Traefik labels. `storage` plus a network-scoped `minio` alias lets Caddy proxy browser PUTs to MinIO; the `data` alias supports API metadata checks and bootstrap. Credentials and the release SHA are required environment values, not committed defaults. | Image namespace/tags, service/resource layout and external networks are Jeimerson-specific. Keep Caddy and MinIO on the same private `storage` network and preserve the `minio` alias when changing the stack name. |
+| [`build_and_push.sh`](../../build_and_push.sh) | Added an operator-run script to build and optionally push the six Docker Hub images, including the Swarm Caddy frontend and source-built MinIO. | Docker Hub namespace and tag are configurable. Use a registry and image identity controlled by the next server's operator. |
+| [`Docs/04 - Operations/Docker Hub Deployment.md`](Docker%20Hub%20Deployment.md) | Added the alternative two-stack Docker Hub/Portainer runbook, including image build/push, required environment variables, network topology, deployment, verification, updates and rollback. | The two-stack workflow and service/network names follow Jeimerson's Swarm. Recheck them if the operator, registry or server architecture changes. |
 | [`deploy/Caddyfile.swarm`](../../deploy/Caddyfile.swarm) | Added the frontend configuration used behind Traefik: serves static assets, forwards API and file-storage requests, handles file CORS, and trusts the proxy layer for client address forwarding. It does not issue public certificates; Traefik does that. | Keep if the new server uses Traefik with the same HTTP-to-frontend arrangement. Replace or adjust if the new server uses Caddy for public TLS, nginx, or another proxy. |
 | [`.env.portainer.example`](../../.env.portainer.example) | Added Portainer stack variable template for domains, image references, database/MinIO credentials, backup settings, and the `PROXY_NETWORK` CIDR used by the API to trust forwarded headers. The example CIDR must be checked for conflicts by the Swarm administrator. | Host-specific values, network CIDR, credentials, domains, and image references must be set again. Never copy the filled-in values into source control. |
 | [`docker-compose.portainer-restore.yml`](../../docker-compose.portainer-restore.yml) | Added a temporary Swarm recovery stack that mounts the target stack's named volumes and internal data network for restore operations. | Depends on Swarm-generated stack volume/network names and the target stack name. Rework for a different orchestrator, volume driver, or stack naming convention. |
@@ -42,7 +47,7 @@ The supplied `stack_ricardo.yaml` (not committed; supplied by the user) was trea
 
 | File | Change and purpose | Portability when moving servers |
 | --- | --- | --- |
-| [`docker-compose.production.yml`](../../docker-compose.production.yml) | Added image-based standalone Compose configuration for local production-mode diagnosis, with a Caddy service that binds local host ports, app services, network boundaries, health checks, and persistent volumes. | Intended for local Compose diagnosis, not the current VPS stack. It uses the standalone TLS Caddy configuration; do not pair it with the current Swarm-only GHCR frontend image without building/publishing a matching standalone frontend image. |
+| [`docker-compose.production.yml`](../../docker-compose.production.yml) | Added image-based standalone Compose configuration for local production-mode diagnosis, with Caddy, app services, network boundaries, health checks and persistent volumes. The frontend and API defaults now reference the versioned Docker Hub images. | Intended for local diagnosis, not the VPS stack. It uses standalone TLS Caddy and must not be confused with either Swarm deployment path. |
 | [`docker-compose.production.local.yml`](../../docker-compose.production.local.yml) | Added a local build overlay so production-mode images can be built from the working tree without GHCR. | Portable local-development tool. Its Caddy build argument selects the standalone `deploy/Caddyfile`. |
 | [`.env.production.example`](../../.env.production.example) | Added non-production values for local production-mode Compose, including local domains, ports, image tags, and blank required PostgreSQL/MinIO credentials. CI generates ephemeral credentials at runtime; local users fill the blanks in their private copy. | Local only. Generate fresh independent credentials for any server deployment. |
 | [`Frontend/Dockerfile.production`](../../Frontend/Dockerfile.production) | Added a production frontend image build: compiles the React app and packages it with pinned Caddy. `CADDY_CONFIG` selects the local or Swarm Caddyfile. | The image build is reusable; choose the correct Caddyfile for the server's TLS/proxy topology. |
@@ -87,7 +92,8 @@ The following test fixture and integration-test files were adjusted for authenti
 
 - [`Docs/03 - Architecture/Alpha Deployment.PLAN.md`](../03%20-%20Architecture/Alpha%20Deployment.PLAN.md) — deployment scope, decisions, implementation record, verification history, and external prerequisites. Updated after the Swarm change to distinguish earlier standalone verification from the unvalidated Swarm deployment.
 - [`Docs/04 - Operations/Alpha Deployment.md`](Alpha%20Deployment.md) — local production build, Swarm/Portainer deployment, image pulls, admin bootstrap, release update, backup, restore, and alpha operational checks.
-- [`README.md`](../../README.md) — alpha status and links to deployment documents.
+- [`Docs/04 - Operations/Docker Hub Deployment.md`](Docker%20Hub%20Deployment.md) — separate Docker Hub two-stack build and Portainer deployment guide.
+- [`README.md`](../../README.md) — repository layout, local setup, Docker Hub image publishing, and links to both Portainer deployment paths.
 - [`Docs/03 - Architecture/Technology Stack.md`](../03%20-%20Architecture/Technology%20Stack.md) — updated MinIO status/rationale for controlled alpha.
 - This ledger, `jeimerson integration.md`, records the deployment changes and migration considerations for future server changes.
 
@@ -98,10 +104,10 @@ The PR also adjusts `Frontend/src/pages/ClientNotificationsPage.test.tsx` to wai
 ### Server-specific items to replace or confirm
 
 1. **Ingress/proxy:** decide whether the new host uses Traefik, Caddy, nginx, or another edge proxy. For Traefik, change `traefik_public`, entrypoints, resolver, TLS labels, and any redirect policy in `docker-stack.production.yml` to match that host. For standalone Caddy, use a matching image built with `deploy/Caddyfile` and the standalone `docker-compose.production.yml`; the existing release GHCR frontend image is the Swarm/Traefik variant and is not interchangeable with the standalone Caddy image.
-2. **Orchestrator:** if the new server is Docker standalone, use Compose rather than `docker stack deploy`; remove Swarm-only `deploy` behavior and overlay-network assumptions. The current local production Compose files show the starting standalone topology, but are configured for local diagnostics. If the new server is another Swarm, retain the stack format and check the external proxy network and placement constraints.
+2. **Orchestrator:** if the new server is Docker standalone, use Compose rather than `docker stack deploy`; remove Swarm-only `deploy` behavior and overlay-network assumptions. The current local production Compose files show the starting standalone topology, but are configured for local diagnostics. If the new server is another Swarm, retain the stack format and check external networks, placement constraints, and service DNS aliases. Caddy and MinIO must share the private `storage` overlay with alias `minio`; the API and MinIO use alias `minio` on `data`.
 3. **Proxy network:** select a non-overlapping CIDR and set `PROXY_NETWORK` to the actual network from which the API receives forwarded requests. Update Caddy's trusted-proxy configuration if the upstream proxy network is not covered appropriately.
-4. **Persistent storage:** decide whether to keep the app-managed PostgreSQL and MinIO services. Preserve database, object data, data-protection keys, and backup volumes across app releases. If using external database/object storage, update endpoints, credentials, network access, backup/restore helpers, and the runbook.
-5. **Registry:** GHCR image paths are generated from the GitHub repository and digests appear in each release artifact. Configure the new server's registry access or choose a different registry. Never replace digest-pinned release references with an unverified mutable tag for a production deployment.
+4. **Persistent storage:** the Docker Hub app stack stores MinIO data, Data Protection keys and backups in named volumes; PostgreSQL 18 is in a separate stack volume. Preserve all volumes across releases and verify cross-stack backups/restores. If using another database or object store, update endpoints, credentials, network access, backup/restore helpers and the runbooks.
+5. **Registry:** choose either the GHCR release artifact path or the operator-built Docker Hub path. Configure access to the selected registry. Docker Hub tags in the Jeimerson files are mutable; prefer recorded image digests for a production release and update both stack references and backup metadata together.
 6. **Placement and capacity:** current services are constrained to a manager because the allocation is one VPS with local named volumes. Revisit those constraints and volume drivers for a multi-node cluster or different storage system.
 7. **Secrets and host settings:** set new domains, independent passwords, proxy CIDR, backup encryption recipient, and remote-backup credentials. Portainer stack variables are visible to Docker administrators; select a different secret-delivery method if the new server's trust model requires one.
 8. **Portainer recovery:** target stack name and generated volume/network names are embedded in the recovery workflow. Keep the existing stack name or update the helper variables and recovery documentation together.
@@ -112,6 +118,21 @@ The PR also adjusts `Frontend/src/pages/ClientNotificationsPage.test.tsx` to wai
 Production API security behavior, admin authorization, health/readiness behavior, non-root API image, pinned build inputs, private object-storage policy, immutable release image identities, encrypted backups, restore validation, and local production-mode builds are application/deployment foundations rather than Jeimerson-specific networking. Keep them unless the application's runtime, security model, or storage architecture changes.
 
 ## Change history
+
+### 2026-11-04 — Jeimerson Docker Hub stacks and MinIO routing
+
+- Imported the supplied repository snapshot's Docker Hub deployment path: an operator build/push script, PostgreSQL 18 and application Portainer stacks, a Docker Hub deployment guide, and README/runbook updates.
+- Kept the existing GHCR single-stack path as a separate option; documented that the two paths must not share stack names or volumes.
+- Added a private `storage` overlay between the application frontend and MinIO, with network-scoped `minio` aliases on `storage` and `data`. This makes Caddy's signed PUT proxy and the API's object metadata checks resolve MinIO without connecting the frontend to the database network. Added a `postgres18` alias on external `app_network` for cross-stack database access. Retained the MinIO alias fix in `docker-stack.production.yml` for the single-stack deployment.
+- Replaced embedded credential values from the supplied archive with required Portainer environment variables. Rotate those previously embedded PostgreSQL/MinIO credentials before deployment because they were included in the supplied ZIP.
+- Updated this ledger, README, Alpha Deployment runbook and Docker Hub runbook to describe the current stack split, network boundaries, required credentials and MinIO DNS alias.
+- The Docker Hub images have not been built or pushed by this change, and the new Portainer stacks have not been deployed on Jeimerson's VPS.
+
+### 2026-11-03 — MinIO service discovery fix
+
+- Added a network-scoped `minio` alias for the MinIO service on `app_network` and `data`. This lets the frontend Caddy proxy and API resolve their existing `minio:9000` upstreams in the stack-prefixed Docker Swarm service namespace.
+- Diagnosed from the deployed frontend logs: Caddy returned 502 because Docker DNS reported `lookup minio ... no such host`. The API uses the same internal storage hostname for metadata verification, so the alias covers both the browser PUT proxy and upload completion.
+- The updated stack definition must be redeployed through Portainer. No frontend or API image rebuild is needed for this network alias change.
 
 ### 2026-11-02 — Swarm and Traefik adaptation
 
@@ -134,4 +155,4 @@ Production API security behavior, admin authorization, health/readiness behavior
 
 ## Current verification boundary
 
-The initial local production path and supporting backup/recovery work were verified before the Swarm adaptation, as recorded in the deployment plan. The latest Swarm-specific stack, Traefik labels, and release frontend profile have not been deployed or validated against Jeimerson's live environment. GitHub publication, GHCR pull access, DNS, proxy networking, TLS issuance, backups, and restore on the VPS remain external steps.
+The initial local production path and supporting backup/recovery work were verified before the Swarm adaptation, as recorded in the deployment plan. The Docker Hub image build script and two Portainer stacks have not been run against the live environment. Docker Hub publishing, Portainer deployment, DNS, proxy networks, TLS issuance, uploads, backups and restore on the VPS remain unverified external steps.

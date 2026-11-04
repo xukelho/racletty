@@ -12,7 +12,7 @@ Racletty does not replace CAD or BIM authoring software. It complements existing
 
 **Documentation status:** Product and architecture documentation in progress
 
-**Last updated:** 2026-11-02
+**Last updated:** 2026-11-04
 
 The application is being prepared for a controlled alpha. The repository includes a local production-mode build and a Portainer deployment bundle; a public VPS deployment still depends on operator configuration of hosting, DNS, GitHub package access and offsite backups.
 
@@ -59,33 +59,74 @@ Advanced 3D visualisation, model editing, automatic revision comparison, billing
 
 Technology marked as a baseline or candidate in the architecture documentation remains subject to validation before implementation.
 
+## Repository Layout
+
+| Path | Contents |
+| --- | --- |
+| `Backend/` | ASP.NET Core API, endpoints, services, storage and EF Core migrations. |
+| `Backend.Tests/` | Integration and unit tests. |
+| `Frontend/` | React 19 + TypeScript application built with Vite. |
+| `Frontend 2/` | Shared workshop styles and assets consumed by the frontend build. |
+| `Database/` | PostgreSQL development container. |
+| `deploy/` | Dockerfiles, Caddy configuration, backup helpers and smoke tests. |
+| `portainer/` | Portainer stack definitions for the Swarm deployment. |
+| `Docs/` | Product, architecture and operations documentation. |
+| `Samples/` | CAD samples used by parsers and tests. |
+
+The backend begins as a modular monolith. The API owns authentication, project data, file metadata and object-storage access; MinIO provides S3-compatible storage; PostgreSQL is the system of record.
+
+## Local Development
+
+Prerequisites: Docker Engine with Compose. The development stack is defined in `docker-compose.yml` and can be driven with `make` or Compose directly.
+
+| Service | Host address |
+| --- | --- |
+| Frontend (Vite) | <http://localhost:5385> |
+| API | <http://localhost:1818> |
+| PostgreSQL | `127.0.0.1:5837` |
+| MinIO API / console | <http://localhost:9000> / <http://localhost:9001> |
+
+Start everything with `make start`, or only one service with `make startdb`, `make startapi` or `make startfrontend`. The database and MinIO use development-only credentials defined in `docker-compose.yml`; never reuse them outside local development.
+
+For production-mode container testing, use `docker-compose.production.yml` with `docker-compose.production.local.yml` as described in [Alpha Deployment](Docs/04%20-%20Operations/Alpha%20Deployment.md).
+
+## Tests
+
+```sh
+dotnet test Backend.Tests/Racletty.Api.IntegrationTests.csproj
+cd Frontend && npm ci && npm run test:run
+```
+
+The backend integration tests start PostgreSQL and MinIO through the test fixture and therefore need a working Docker environment. The frontend tests use Vitest.
+
 ## Documentation
 
 ### Product Foundation
 
-- [Vision](Vision.md)
-- [Problem Statement](Problem%20Statement.md)
-- [Goals](Goals.md)
-- [Non Goals](Non%20Goals.md)
-- [Success Metrics](Success%20Metrics.md)
-- [Target Users](Target%20Users.md)
-- [MVP Scope](MVP%20Scope.md)
-- [Core Workflows](Core%20Workflows.md)
-- [Product Requirements](Product%20Requirements.md)
-- [Roadmap](Roadmap.md)
+- [Product Vision](Docs/01%20-%20Vision/Product%20Vision.md)
+- [Problem Statement](Docs/01%20-%20Vision/Problem%20Statement.md)
+- [Goals](Docs/01%20-%20Vision/Goals.md)
+- [Non Goals](Docs/01%20-%20Vision/Non%20Goals.md)
+- [Success Metrics](Docs/01%20-%20Vision/Success%20Metrics.md)
+- [Target Users](Docs/01%20-%20Vision/Target%20Users.md)
+- [MVP Scope](Docs/02%20-%20Product/MVP%20Scope.md)
+- [Core Workflows](Docs/02%20-%20Product/Core%20Workflows.md)
+- [Product Requirements](Docs/02%20-%20Product/Product%20Requirements.md)
+- [Roadmap](Docs/02%20-%20Product/Roadmap.md)
 
 ### Architecture
 
-- [Architecture Overview](03%20-%20Architecture/Architecture%20Overview.md)
-- [Technology Stack](03%20-%20Architecture/Technology%20Stack.md)
-- [Repository Structure](03%20-%20Architecture/Repository%20Structure.md)
-- [Architecture Principles](03%20-%20Architecture/Architecture%20Principles.md)
-- [Alpha Deployment Plan](03%20-%20Architecture/Alpha%20Deployment.PLAN.md)
+- [Architecture Overview](Docs/03%20-%20Architecture/Architecture%20Overview.md)
+- [Technology Stack](Docs/03%20-%20Architecture/Technology%20Stack.md)
+- [Repository Structure](Docs/03%20-%20Architecture/Repository%20Structure.md)
+- [Architecture Principles](Docs/03%20-%20Architecture/Architecture%20Principles.md)
+- [Alpha Deployment Plan](Docs/03%20-%20Architecture/Alpha%20Deployment.PLAN.md)
 
 ### Operations
 
-- [Alpha Deployment Runbook](04%20-%20Operations/Alpha%20Deployment.md)
-- [Jeimerson Server Integration Ledger](04%20-%20Operations/jeimerson%20integration.md)
+- [Alpha Deployment Runbook (GHCR)](Docs/04%20-%20Operations/Alpha%20Deployment.md)
+- [Docker Hub and Portainer Deployment](Docs/04%20-%20Operations/Docker%20Hub%20Deployment.md)
+- [Jeimerson Server Integration Ledger](Docs/04%20-%20Operations/jeimerson%20integration.md)
 
 ## Documentation Conventions
 
@@ -108,7 +149,7 @@ Use `Ctrl+C` to stop a foreground process.
 | `make start` / `make up` | Start all services defined in `docker-compose.yml`. |
 | `make stop` / `make down` | Stop and remove all Compose containers and networks. |
 | `make restart` | Bring down all services, then start them again. |
-| `make startdb` / `make updb` | Start only the `postgresdb` database service. |
+| `make startdb` / `make updb` | Start only the `racletty-db` database service. |
 | `make stopdb` | Stop only the database service. |
 | `make downdb` | Stop and remove only the database container. Its named volume is retained. |
 | `make restartdb` | Remove the database container, then start it again. |
@@ -125,9 +166,48 @@ Docker Compose cannot run `down` for just one service: its `down` command always
 targets the whole project. The service-specific `down*` commands therefore stop
 and remove that service's container, which provides the equivalent scoped result.
 
-For production-mode container testing and the Portainer deployment runbook, see
+For production-mode container testing and the GHCR deployment runbook, see
 [Alpha Deployment](Docs/04%20-%20Operations/Alpha%20Deployment.md). It uses a
 separate Compose project and volumes from local development.
+
+## Building and Publishing Images
+
+`build_and_push.sh` builds and pushes the six images used by the Portainer stacks:
+
+| Image | Dockerfile |
+| --- | --- |
+| `racletty-backend` | `Backend/Dockerfile` |
+| `racletty-frontend` | `Frontend/Dockerfile.production` |
+| `racletty-minio` | `deploy/minio.Dockerfile` |
+| `racletty-mc` | `deploy/minio-client.Dockerfile` |
+| `racletty-minio-bootstrap` | `deploy/minio-bootstrap.Dockerfile` |
+| `racletty-backup-tools` | `deploy/backup-tools.Dockerfile` |
+
+```sh
+docker login -u <docker-username>
+./build_and_push.sh <docker-username> v1.0.0
+```
+
+The current stacks reference `hammebsb` and tag `v1.0.0`. Use `--no-push` to build only, or `DOCKER_BIN="sudo -n docker"` when the current user cannot access the Docker daemon. `VITE_GOOGLE_MAPS_API_KEY` is baked into the frontend at build time.
+
+The frontend must be built with `Frontend/Dockerfile.production`, not the development `Frontend/Dockerfile`. MinIO is compiled from upstream source because the community repository no longer publishes the required release as an official container.
+
+Full instructions, variables and troubleshooting: [Docker Hub and Portainer Deployment](Docs/04%20-%20Operations/Docker%20Hub%20Deployment.md).
+
+## Portainer Deployment
+
+The Swarm deployment uses two stacks in `portainer/`:
+
+| Stack | File | Services |
+| --- | --- | --- |
+| Database | `portainer/postgresql18.yaml` | `postgres18` on port 7584 |
+| Application | `portainer/ricardo_app.yaml` | `frontend`, `api`, `minio`, `minio-bootstrap`, `backup-tools` |
+
+Deploy the database stack first, then the application stack. Both use the existing external overlay networks `app_network` (API and PostgreSQL) and `traefik_public` (Traefik ingress). The application stack creates private `proxy`, `data` and `storage` overlays; `storage` connects Caddy directly to MinIO for browser uploads without giving Caddy access to the database network. Only the frontend is routed through Traefik.
+
+The application defaults to `APP_DOMAIN=ricardo.centsfy.com`, `FILES_DOMAIN=files.centsfy.com`, `APP_ORIGIN=https://ricardo.centsfy.com`, `FILES_PUBLIC_ENDPOINT=https://files.centsfy.com`, `PROXY_NETWORK=10.251.251.0/24` and `RACLETTY_STACK_NAME=racletty`. Set `POSTGRES_PASSWORD`, the MinIO root and application credentials, and the full `COMMIT` SHA in Portainer. No credential values are stored in the stack files. The frontend and MinIO share a private `storage` overlay with a `minio` DNS alias, while the database remains on `app_network`. The database stack optionally accepts `POSTGRES_IMAGE`.
+
+For production, pin `POSTGRES_IMAGE` to an immutable digest instead of the mutable `postgres:18` tag, and keep real secrets out of the repository. See [Docker Hub and Portainer Deployment](Docs/04%20-%20Operations/Docker%20Hub%20Deployment.md) for the complete variable table, verification steps, updates and rollback.
 
 ## Guiding Principle
 
