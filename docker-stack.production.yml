@@ -8,7 +8,7 @@ x-default-logging: &default-logging
 
 services:
   frontend:
-    image: ${FRONTEND_IMAGE:?Set FRONTEND_IMAGE to an immutable image reference}
+    image: ${FRONTEND_IMAGE:-hammebsb/racletty-frontend:v1.0.0}
     environment:
       APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN}
       FILES_DOMAIN: ${FILES_DOMAIN:?Set FILES_DOMAIN}
@@ -44,7 +44,7 @@ services:
         - traefik.http.middlewares.racletty-https.redirectscheme.permanent=true
 
   api:
-    image: ${API_IMAGE:?Set API_IMAGE to an immutable image reference}
+    image: ${API_IMAGE:-hammebsb/racletty-backend:v1.0.0}
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       APPLICATION_ENVIRONMENT: production

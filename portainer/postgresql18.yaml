@@ -1,0 +1,73 @@
+# Racletty database stack (PostgreSQL 18).
+#
+# Deploy this stack BEFORE ricardo_app.yaml. Both stacks share the existing
+# external Swarm overlay network "app_network". No network is created by this
+# stack; rename the reference below if the existing network has another name.
+#
+# The application stack connects with:
+#   Host=postgres18;Port=7584;Database=racletty;Username=racletty
+#
+# For production, pin POSTGRES_IMAGE to an immutable digest instead of the
+# mutable "postgres:18" tag.
+#
+# Set POSTGRES_PASSWORD as a Portainer stack environment variable. This file
+# contains no credential defaults.
+
+services:
+  postgres18:
+    image: ${POSTGRES_IMAGE:-postgres:18}
+    hostname: postgres18
+
+    environment:
+      POSTGRES_DB: racletty
+      POSTGRES_USER: racletty
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+
+    command: >
+      postgres
+      -c port=7584
+      -c max_connections=200
+      -c shared_buffers=1024MB
+      -c work_mem=8MB
+      -c maintenance_work_mem=256MB
+      -c effective_cache_size=3072MB
+      -c idle_in_transaction_session_timeout=60000
+      -c statement_timeout=0
+
+    volumes:
+      - postgres18_data:/var/lib/postgresql
+
+    networks:
+      app_network:
+        aliases: [postgres18]
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -p 7584 -U racletty -d racletty"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    deploy:
+      mode: replicated
+      labels:
+        - traefik.enable=false
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "2"
+          memory: 4096M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+volumes:
+  postgres18_data:
+
+networks:
+  app_network:
+    name: app_network
+    external: true
