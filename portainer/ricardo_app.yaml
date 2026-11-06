@@ -36,7 +36,7 @@ x-default-logging: &default-logging
 
 services:
   frontend:
-    image: hammebsb/racletty-frontend:v1.0.0
+    image: xukelho/racletty-frontend:v1.0.1
     environment:
       APP_DOMAIN: ${APP_DOMAIN:-ricardo.centsfy.com}
       FILES_DOMAIN: ${FILES_DOMAIN:-files.centsfy.com}
@@ -72,7 +72,7 @@ services:
         - traefik.http.middlewares.racletty-https.redirectscheme.permanent=true
 
   api:
-    image: hammebsb/racletty-backend:v1.0.0
+    image: xukelho/racletty-backend:v1.0.1
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       APPLICATION_ENVIRONMENT: production
@@ -112,7 +112,7 @@ services:
         delay: 5s
 
   minio:
-    image: hammebsb/racletty-minio:v1.0.0
+    image: xukelho/racletty-minio:v1.0.1
     command: [server, /data, --console-address, ":9001"]
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Set MINIO_ROOT_USER}
@@ -145,7 +145,7 @@ services:
         delay: 5s
 
   minio-bootstrap:
-    image: hammebsb/racletty-minio-bootstrap:v1.0.0
+    image: xukelho/racletty-minio-bootstrap:v1.0.1
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Set MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD}
@@ -165,7 +165,7 @@ services:
         delay: 10s
 
   backup-tools:
-    image: hammebsb/racletty-backup-tools:v1.0.0
+    image: xukelho/racletty-backup-tools:v1.0.1
     command: ["sh", "-c", "while :; do sleep 3600; done"]
     environment:
       PGHOST: postgres18
@@ -178,13 +178,13 @@ services:
       RCLONE_CONFIG_CONTENT: ${RCLONE_CONFIG_CONTENT:-}
       RACLETTY_STACK_NAME: ${RACLETTY_STACK_NAME:-racletty}
       RACLETTY_RELEASE_COMMIT: ${COMMIT:?Set COMMIT to the full release commit SHA}
-      RACLETTY_API_IMAGE: hammebsb/racletty-backend:v1.0.0
-      RACLETTY_FRONTEND_IMAGE: hammebsb/racletty-frontend:v1.0.0
-      RACLETTY_MINIO_BOOTSTRAP_IMAGE: hammebsb/racletty-minio-bootstrap:v1.0.0
-      RACLETTY_BACKUP_TOOLS_IMAGE: hammebsb/racletty-backup-tools:v1.0.0
+      RACLETTY_API_IMAGE: xukelho/racletty-backend:v1.0.1
+      RACLETTY_FRONTEND_IMAGE: xukelho/racletty-frontend:v1.0.1
+      RACLETTY_MINIO_BOOTSTRAP_IMAGE: xukelho/racletty-minio-bootstrap:v1.0.1
+      RACLETTY_BACKUP_TOOLS_IMAGE: xukelho/racletty-backup-tools:v1.0.1
       RACLETTY_POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:18}
-      RACLETTY_MINIO_IMAGE: hammebsb/racletty-minio:v1.0.0
-      RACLETTY_MINIO_MC_IMAGE: hammebsb/racletty-mc:v1.0.0
+      RACLETTY_MINIO_IMAGE: xukelho/racletty-minio:v1.0.1
+      RACLETTY_MINIO_MC_IMAGE: xukelho/racletty-mc:v1.0.1
     volumes:
       - minio-data:/source/minio:ro
       - data-protection:/source/data-protection:ro

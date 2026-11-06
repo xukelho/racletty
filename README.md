@@ -12,7 +12,7 @@ Racletty does not replace CAD or BIM authoring software. It complements existing
 
 **Documentation status:** Product and architecture documentation in progress
 
-**Last updated:** 2026-11-04
+**Last updated:** 2026-11-06
 
 The application is being prepared for a controlled alpha. The repository includes a local production-mode build and a Portainer deployment bundle; a public VPS deployment still depends on operator configuration of hosting, DNS, GitHub package access and offsite backups.
 
@@ -185,10 +185,10 @@ separate Compose project and volumes from local development.
 
 ```sh
 docker login -u <docker-username>
-./build_and_push.sh <docker-username> v1.0.0
+./build_and_push.sh <docker-username> v1.0.1
 ```
 
-The current stacks reference `hammebsb` and tag `v1.0.0`. Use `--no-push` to build only, or `DOCKER_BIN="sudo -n docker"` when the current user cannot access the Docker daemon. `VITE_GOOGLE_MAPS_API_KEY` is baked into the frontend at build time.
+The current stacks reference `xukelho` and tag `v1.0.1`. Use `--no-push` to build only, or `DOCKER_BIN="sudo -n docker"` when the current user cannot access the Docker daemon. `VITE_GOOGLE_MAPS_API_KEY` is baked into the frontend at build time.
 
 The frontend must be built with `Frontend/Dockerfile.production`, not the development `Frontend/Dockerfile`. MinIO is compiled from upstream source because the community repository no longer publishes the required release as an official container.
 

@@ -6,8 +6,8 @@
 #   ./build_and_push.sh <docker-username> [tag] [--no-push]
 #
 # Example:
-#   ./build_and_push.sh hammebsb v1.0.0
-#   DOCKER_BIN="sudo -n docker" ./build_and_push.sh hammebsb v1.0.0 --no-push
+#   ./build_and_push.sh xukelho v1.0.1
+#   DOCKER_BIN="sudo -n docker" ./build_and_push.sh xukelho v1.0.1 --no-push
 #
 # Optional environment:
 #   DOCKER_BIN                Docker command to use (default: docker)
@@ -17,7 +17,7 @@ set -euo pipefail
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <docker-username> [tag] [--no-push]" >&2
-  echo "Example: $0 hammebsb v1.0.0" >&2
+  echo "Example: $0 xukelho v1.0.1" >&2
   exit 1
 fi
 

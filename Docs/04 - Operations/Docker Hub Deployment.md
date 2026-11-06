@@ -2,7 +2,7 @@
 
 Status: Docker Hub image build and two-stack Portainer deployment path prepared; confirm image availability before deployment
 
-Last updated: 2026-11-04
+Last updated: 2026-11-06
 
 This runbook covers the Docker Hub path for Racletty: build the six application images locally, push them to Docker Hub, and deploy them through two Portainer stacks. It is an alternative to the GHCR/GitHub Actions path described in [Alpha Deployment](Alpha%20Deployment.md).
 
@@ -18,7 +18,7 @@ Only the frontend is reachable from outside the cluster, through Traefik. The AP
 ## Prerequisites
 
 - Docker Engine with Buildx on the machine that builds the images.
-- A Docker Hub account (the current stacks reference `hammebsb`).
+- A Docker Hub account (the current stacks reference `xukelho`).
 - Roughly 5–6 GB of free disk space. The MinIO image is compiled from source and its Go build cache is the largest step.
 - A Docker Swarm manager running Traefik, with the existing external overlay network `traefik_public` already attached to Traefik.
 - The existing external overlay network `app_network`, shared by both stacks. The stacks do not create it; change the network name in both files if the cluster uses a different name.
@@ -29,13 +29,13 @@ Only the frontend is reachable from outside the cluster, through Traefik. The AP
 If the current user cannot access the Docker daemon, run the script through `sudo`:
 
 ```sh
-DOCKER_BIN="sudo -n docker" ./build_and_push.sh hammebsb v1.0.0
+DOCKER_BIN="sudo -n docker" ./build_and_push.sh xukelho v1.0.1
 ```
 
 Alternatively, add the user to the `docker` group and start a new shell. Using `sudo` changes the Docker configuration directory: authenticate with the same command prefix that will be used to push.
 
 ```sh
-sudo docker login -u hammebsb
+sudo docker login -u xukelho
 ```
 
 Use a Docker Hub access token rather than the account password.
@@ -66,9 +66,9 @@ The script builds and pushes all six images with a single tag:
 Examples:
 
 ```sh
-./build_and_push.sh hammebsb v1.0.0
-DOCKER_BIN="sudo -n docker" ./build_and_push.sh hammebsb v1.0.0 --no-push
-VITE_GOOGLE_MAPS_API_KEY=... ./build_and_push.sh hammebsb v1.0.1
+./build_and_push.sh xukelho v1.0.1
+DOCKER_BIN="sudo -n docker" ./build_and_push.sh xukelho v1.0.1 --no-push
+VITE_GOOGLE_MAPS_API_KEY=... ./build_and_push.sh xukelho v1.0.1
 ```
 
 Optional environment variables:
@@ -94,18 +94,18 @@ Record the digest printed by each `docker push`. Tags are convenient, but a dige
 ### Manual equivalent
 
 ```sh
-docker build -t hammebsb/racletty-backend:v1.0.0 -f Backend/Dockerfile Backend
-docker build -t hammebsb/racletty-frontend:v1.0.0 \
+docker build -t xukelho/racletty-backend:v1.0.1 -f Backend/Dockerfile Backend
+docker build -t xukelho/racletty-frontend:v1.0.1 \
   -f Frontend/Dockerfile.production \
   --build-arg CADDY_CONFIG=deploy/Caddyfile.swarm \
   --build-arg VITE_GOOGLE_MAPS_API_KEY="$VITE_GOOGLE_MAPS_API_KEY" .
-docker build -t hammebsb/racletty-minio:v1.0.0 -f deploy/minio.Dockerfile .
-docker build -t hammebsb/racletty-mc:v1.0.0 -f deploy/minio-client.Dockerfile .
-docker build -t hammebsb/racletty-minio-bootstrap:v1.0.0 -f deploy/minio-bootstrap.Dockerfile .
-docker build -t hammebsb/racletty-backup-tools:v1.0.0 -f deploy/backup-tools.Dockerfile .
+docker build -t xukelho/racletty-minio:v1.0.1 -f deploy/minio.Dockerfile .
+docker build -t xukelho/racletty-mc:v1.0.1 -f deploy/minio-client.Dockerfile .
+docker build -t xukelho/racletty-minio-bootstrap:v1.0.1 -f deploy/minio-bootstrap.Dockerfile .
+docker build -t xukelho/racletty-backup-tools:v1.0.1 -f deploy/backup-tools.Dockerfile .
 
 for image in backend frontend minio mc minio-bootstrap backup-tools; do
-  docker push "hammebsb/racletty-$image:v1.0.0"
+  docker push "xukelho/racletty-$image:v1.0.1"
 done
 ```
 

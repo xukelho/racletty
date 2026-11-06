@@ -6,7 +6,7 @@ x-default-logging: &default-logging
 
 services:
   caddy:
-    image: ${FRONTEND_IMAGE:-hammebsb/racletty-frontend:v1.0.0}
+    image: ${FRONTEND_IMAGE:-xukelho/racletty-frontend:v1.0.1}
     environment:
       APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN}
       FILES_DOMAIN: ${FILES_DOMAIN:?Set FILES_DOMAIN}
@@ -27,7 +27,7 @@ services:
         condition: service_healthy
 
   api:
-    image: ${API_IMAGE:-hammebsb/racletty-backend:v1.0.0}
+    image: ${API_IMAGE:-xukelho/racletty-backend:v1.0.1}
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       APPLICATION_ENVIRONMENT: production

@@ -4,7 +4,7 @@ Status: Active integration ledger
 
 Owner: Ricardo Coelho
 
-Last updated: 2026-11-04
+Last updated: 2026-11-06
 
 ## Purpose and maintenance rule
 
@@ -21,7 +21,7 @@ This is a record of repository changes and intended operation. It does not imply
 - Traefik owns public ports 80 and 443 and terminates public TLS. Racletty's Caddy frontend serves HTTP within the Swarm and is reached through Traefik.
 - The current Jeimerson deployment uses two Portainer stacks: a PostgreSQL 18 stack and a separate application stack. They share the existing external `app_network`; the application stack supplies MinIO and its persistent data volume. The earlier single-stack PostgreSQL 17.11/GHCR deployment remains a separate option described in the Alpha Deployment runbook.
 - Traefik routes the app and files hostnames to Caddy. The app stack creates private `proxy`, `data` and `storage` overlays; `storage` connects Caddy to MinIO for direct file uploads, while `app_network` connects the API to PostgreSQL.
-- The Jeimerson Docker Hub path builds six images on the operator's machine and pushes them to the `hammebsb` Docker Hub namespace. Portainer pulls those versioned images; it does not build them. The GHCR/GitHub Actions path remains separate, and the two paths must not share stack names or volumes.
+- The Jeimerson Docker Hub path builds six images on the operator's machine and pushes them to the `xukelho` Docker Hub namespace. Portainer pulls those versioned images; it does not build them. The GHCR/GitHub Actions path remains separate, and the two paths must not share stack names or volumes.
 - Credentials are supplied through Portainer environment values and are not stored in the committed stack files. Credentials that appeared as literal values in the supplied archive must be rotated before deployment.
 - The app retains the seeded `Admin` account. The operator replaces/deletes it before allowing testers in, then resets persisted data-protection keys to invalidate bootstrap sessions.
 
@@ -118,6 +118,11 @@ The PR also adjusts `Frontend/src/pages/ClientNotificationsPage.test.tsx` to wai
 Production API security behavior, admin authorization, health/readiness behavior, non-root API image, pinned build inputs, private object-storage policy, immutable release image identities, encrypted backups, restore validation, and local production-mode builds are application/deployment foundations rather than Jeimerson-specific networking. Keep them unless the application's runtime, security model, or storage architecture changes.
 
 ## Change history
+
+### 2026-11-06 — Docker Hub namespace and image tag
+
+- Updated the Docker Hub deployment references from `hammebsb:v1.0.0` to `xukelho:v1.0.1` across the Portainer app stack, production image defaults, build examples, README, and deployment guide.
+- The `v1.0.1` images and Portainer deployment have not been verified on the live VPS.
 
 ### 2026-11-04 — Jeimerson Docker Hub stacks and MinIO routing
 
