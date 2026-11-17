@@ -1,5 +1,4 @@
-# Local build overlay for the image-only production stack. Portainer and release
-# bundles use docker-compose.production.yml without this file.
+# Local build overlay for the image-only production stack.
 services:
   caddy:
     build:
@@ -22,8 +21,3 @@ services:
     build:
       context: .
       dockerfile: deploy/minio.Dockerfile
-
-  backup-tools:
-    build:
-      context: .
-      dockerfile: deploy/backup-tools.Dockerfile
