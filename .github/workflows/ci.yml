@@ -83,7 +83,6 @@ jobs:
       - run: docker build -f Frontend/Dockerfile.production -t racletty-frontend:ci .
       - run: docker build -t racletty-api:ci ./Backend
       - run: docker build -f deploy/minio-bootstrap.Dockerfile -t racletty-minio-bootstrap:ci .
-      - run: docker build -f deploy/backup-tools.Dockerfile -t racletty-backup-tools:ci .
       - name: Smoke test the production Compose stack
         env:
           APP_DOMAIN: app.localhost
@@ -99,7 +98,6 @@ jobs:
           docker tag racletty-api:ci racletty-api:local
           docker tag racletty-minio:ci racletty-minio:local
           docker tag racletty-minio-bootstrap:ci racletty-minio-bootstrap:local
-          docker tag racletty-backup-tools:ci racletty-backup-tools:local
           cleanup() {
             docker compose -p racletty-ci-production --env-file .env.production.example -f docker-compose.production.yml -f docker-compose.production.local.yml down -v --remove-orphans
           }

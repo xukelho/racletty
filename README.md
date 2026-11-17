@@ -14,7 +14,7 @@ Racletty does not replace CAD or BIM authoring software. It complements existing
 
 **Last updated:** 2026-11-06
 
-The application is being prepared for a controlled alpha. The repository includes a local production-mode build and a Portainer deployment bundle; a public VPS deployment still depends on operator configuration of hosting, DNS, GitHub package access and offsite backups.
+The application is being prepared for a controlled alpha. The repository includes a local production-mode build for diagnosis. Server deployment configuration will be added separately once the target environment is selected.
 
 ## Core Product Workflow
 
@@ -68,8 +68,7 @@ Technology marked as a baseline or candidate in the architecture documentation r
 | `Frontend/` | React 19 + TypeScript application built with Vite. |
 | `Frontend 2/` | Shared workshop styles and assets consumed by the frontend build. |
 | `Database/` | PostgreSQL development container. |
-| `deploy/` | Dockerfiles, Caddy configuration, backup helpers and smoke tests. |
-| `portainer/` | Portainer stack definitions for the Swarm deployment. |
+| `deploy/` | Dockerfiles, Caddy configuration, MinIO bootstrap and local smoke checks. |
 | `Docs/` | Product, architecture and operations documentation. |
 | `Samples/` | CAD samples used by parsers and tests. |
 
@@ -120,13 +119,10 @@ The backend integration tests start PostgreSQL and MinIO through the test fixtur
 - [Technology Stack](Docs/03%20-%20Architecture/Technology%20Stack.md)
 - [Repository Structure](Docs/03%20-%20Architecture/Repository%20Structure.md)
 - [Architecture Principles](Docs/03%20-%20Architecture/Architecture%20Principles.md)
-- [Alpha Deployment Plan](Docs/03%20-%20Architecture/Alpha%20Deployment.PLAN.md)
 
 ### Operations
 
-- [Alpha Deployment Runbook (GHCR)](Docs/04%20-%20Operations/Alpha%20Deployment.md)
-- [Docker Hub and Portainer Deployment](Docs/04%20-%20Operations/Docker%20Hub%20Deployment.md)
-- [Jeimerson Server Integration Ledger](Docs/04%20-%20Operations/jeimerson%20integration.md)
+- [Local Production-mode Runbook](Docs/04%20-%20Operations/Alpha%20Deployment.md)
 
 ## Documentation Conventions
 
@@ -166,48 +162,9 @@ Docker Compose cannot run `down` for just one service: its `down` command always
 targets the whole project. The service-specific `down*` commands therefore stop
 and remove that service's container, which provides the equivalent scoped result.
 
-For production-mode container testing and the GHCR deployment runbook, see
+For production-mode container testing, see
 [Alpha Deployment](Docs/04%20-%20Operations/Alpha%20Deployment.md). It uses a
 separate Compose project and volumes from local development.
-
-## Building and Publishing Images
-
-`build_and_push.sh` builds and pushes the six images used by the Portainer stacks:
-
-| Image | Dockerfile |
-| --- | --- |
-| `racletty-backend` | `Backend/Dockerfile` |
-| `racletty-frontend` | `Frontend/Dockerfile.production` |
-| `racletty-minio` | `deploy/minio.Dockerfile` |
-| `racletty-mc` | `deploy/minio-client.Dockerfile` |
-| `racletty-minio-bootstrap` | `deploy/minio-bootstrap.Dockerfile` |
-| `racletty-backup-tools` | `deploy/backup-tools.Dockerfile` |
-
-```sh
-docker login -u <docker-username>
-./build_and_push.sh <docker-username> v1.0.1
-```
-
-The current stacks reference `xukelho` and tag `v1.0.1`. Use `--no-push` to build only, or `DOCKER_BIN="sudo -n docker"` when the current user cannot access the Docker daemon. `VITE_GOOGLE_MAPS_API_KEY` is baked into the frontend at build time.
-
-The frontend must be built with `Frontend/Dockerfile.production`, not the development `Frontend/Dockerfile`. MinIO is compiled from upstream source because the community repository no longer publishes the required release as an official container.
-
-Full instructions, variables and troubleshooting: [Docker Hub and Portainer Deployment](Docs/04%20-%20Operations/Docker%20Hub%20Deployment.md).
-
-## Portainer Deployment
-
-The Swarm deployment uses two stacks in `portainer/`:
-
-| Stack | File | Services |
-| --- | --- | --- |
-| Database | `portainer/postgresql18.yaml` | `postgres18` on port 7584 |
-| Application | `portainer/ricardo_app.yaml` | `frontend`, `api`, `minio`, `minio-bootstrap`, `backup-tools` |
-
-Deploy the database stack first, then the application stack. Both use the existing external overlay networks `app_network` (API and PostgreSQL) and `traefik_public` (Traefik ingress). The application stack creates private `proxy`, `data` and `storage` overlays; `storage` connects Caddy directly to MinIO for browser uploads without giving Caddy access to the database network. Only the frontend is routed through Traefik.
-
-The application defaults to `APP_DOMAIN=ricardo.centsfy.com`, `FILES_DOMAIN=files.centsfy.com`, `APP_ORIGIN=https://ricardo.centsfy.com`, `FILES_PUBLIC_ENDPOINT=https://files.centsfy.com`, `PROXY_NETWORK=10.251.251.0/24` and `RACLETTY_STACK_NAME=racletty`. Set `POSTGRES_PASSWORD`, the MinIO root and application credentials, and the full `COMMIT` SHA in Portainer. No credential values are stored in the stack files. The frontend and MinIO share a private `storage` overlay with a `minio` DNS alias, while the database remains on `app_network`. The database stack optionally accepts `POSTGRES_IMAGE`.
-
-For production, pin `POSTGRES_IMAGE` to an immutable digest instead of the mutable `postgres:18` tag, and keep real secrets out of the repository. See [Docker Hub and Portainer Deployment](Docs/04%20-%20Operations/Docker%20Hub%20Deployment.md) for the complete variable table, verification steps, updates and rollback.
 
 ## Guiding Principle
 
