@@ -104,3 +104,53 @@ jobs:
           trap cleanup EXIT
           docker compose -p racletty-ci-production --env-file .env.production.example -f docker-compose.production.yml -f docker-compose.production.local.yml up -d --no-build --wait --wait-timeout 180
           TLS_INSECURE=1 sh deploy/smoke-test.sh
+  publish-images:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: racletty-frontend
+            context: .
+            file: Frontend/Dockerfile.production
+          - image: racletty-api
+            context: ./Backend
+            file: ./Backend/Dockerfile
+          - image: racletty-minio
+            context: .
+            file: deploy/minio.Dockerfile
+          - image: racletty-minio-bootstrap
+            context: .
+            file: deploy/minio-bootstrap.Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Normalize image owner
+        id: owner
+        run: echo "value=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          push: true
+          tags: ghcr.io/${{ steps.owner.outputs.value }}/${{ matrix.image }}:${{ github.sha }}
+
+      - name: Show immutable image reference
+        run: echo "ghcr.io/${{ steps.owner.outputs.value }}/${{ matrix.image }}@${{ steps.build.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
