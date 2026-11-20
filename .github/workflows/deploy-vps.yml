@@ -1,0 +1,45 @@
+name: Deploy to VPS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: racletty-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Configure SSH
+        shell: bash
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ vars.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/racletty_deploy"
+          printf '%s\\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/racletty_deploy" "$HOME/.ssh/known_hosts"
+
+      - name: Pull and start the pinned Compose images
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -euo pipefail
+          ssh -i "$HOME/.ssh/racletty_deploy" \\
+            -p "$DEPLOY_PORT" \\
+            -o IdentitiesOnly=yes \\
+            -o BatchMode=yes \\
+            -o StrictHostKeyChecking=yes \\
+            "$DEPLOY_USER@$DEPLOY_HOST" \\
+            'docker compose --project-directory /opt/racletty --env-file /opt/racletty/.env.production -f /opt/racletty/docker-compose.production.yml -p racletty pull && docker compose --project-directory /opt/racletty --env-file /opt/racletty/.env.production -f /opt/racletty/docker-compose.production.yml -p racletty up -d'
