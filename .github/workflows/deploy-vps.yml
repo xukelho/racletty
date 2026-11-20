@@ -24,8 +24,8 @@ jobs:
         run: |
           set -euo pipefail
           install -m 700 -d "$HOME/.ssh"
-          printf '%s\\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/racletty_deploy"
-          printf '%s\\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/racletty_deploy"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/racletty_deploy" "$HOME/.ssh/known_hosts"
 
       - name: Pull and start the pinned Compose images
@@ -36,10 +36,10 @@ jobs:
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
           set -euo pipefail
-          ssh -i "$HOME/.ssh/racletty_deploy" \\
-            -p "$DEPLOY_PORT" \\
-            -o IdentitiesOnly=yes \\
-            -o BatchMode=yes \\
-            -o StrictHostKeyChecking=yes \\
-            "$DEPLOY_USER@$DEPLOY_HOST" \\
+          ssh -i "$HOME/.ssh/racletty_deploy" \
+            -p "$DEPLOY_PORT" \
+            -o IdentitiesOnly=yes \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
             'docker compose --project-directory /opt/racletty --env-file /opt/racletty/.env.production -f /opt/racletty/docker-compose.production.yml -p racletty pull && docker compose --project-directory /opt/racletty --env-file /opt/racletty/.env.production -f /opt/racletty/docker-compose.production.yml -p racletty up -d'
