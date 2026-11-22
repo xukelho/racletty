@@ -70,20 +70,30 @@ Use a dedicated Linux user for deployments rather than SSH root. The Docker grou
 
 ## GitHub configuration
 
-Create the GitHub Environment `production` and add these environment secrets:
+The deployment job uses the repository's existing `DEPLOY_*` settings. Keep the secrets at repository scope or in the `production` environment; keep the known-hosts line in a repository variable because it is a public host key.
+
+### Secrets
 
 | Secret | Value |
 | --- | --- |
-| `VPS_HOST` | VPS address, for example its IPv4 address |
-| `VPS_USER` | Dedicated deployment username |
-| `VPS_SSH_PRIVATE_KEY` | Private key matching the VPS user's installed public key |
-| `VPS_KNOWN_HOSTS` | Verified SSH host-key line for the VPS |
+| `DEPLOY_HOST` | VPS address |
+| `DEPLOY_PORT` | SSH port (usually `22`) |
+| `DEPLOY_USER` | Dedicated deployment username |
+| `DEPLOY_SSH_KEY` | Private key matching the public key installed for the deployment user |
 
-Obtain the SSH host key from a trusted connection and verify its fingerprint using the Contabo console before adding it to `VPS_KNOWN_HOSTS`. Do not rely on an unverified `ssh-keyscan` result.
+### Repository variables
 
-Optionally add the repository variable `DEPLOY_PATH`; it defaults to `/opt/racletty`. For safer releases, configure required reviewers on the `production` environment before enabling deployment.
+| Variable | Value |
+| --- | --- |
+| `DEPLOY_ENABLED` | Keep `false` until setup is complete; set to exact lowercase `true` to enable deployment |
+| `DEPLOY_KNOWN_HOSTS` | Verified SSH host-key line for the VPS |
+| `DEPLOY_PATH` | Optional; defaults to `/opt/racletty` |
 
-After the VPS is provisioned and the secrets are saved, set repository variable `PRODUCTION_DEPLOY_ENABLED=true`. Subsequent successful pushes to `main` will publish and deploy that commit. To turn off automatic deployment, unset the variable or change its value.
+Obtain the SSH host key from a trusted connection and verify its fingerprint using the Contabo console before adding it to `DEPLOY_KNOWN_HOSTS`. Do not rely on an unverified `ssh-keyscan` result. The deployment workflow enforces strict host-key checking.
+
+If GHCR packages are private, ensure the repository's Actions `GITHUB_TOKEN` has permission to read the packages. The current CI workflow publishes packages with the repository token.
+
+After the VPS is provisioned and the settings above are verified, set `DEPLOY_ENABLED=true`. Subsequent successful pushes to `main` publish and deploy that commit. To turn off automatic deployment, set the variable back to `false`.
 
 ## Start and verify
 
