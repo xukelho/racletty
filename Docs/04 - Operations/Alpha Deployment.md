@@ -28,7 +28,7 @@ Create these Cloudflare DNS records, all pointing to the VPS IPv4 address:
 | A | `@` | VPS IPv4 address |
 | CNAME | `www` | `racletty.com` |
 
-Initially set them to DNS-only (grey cloud) so Caddy can obtain certificates directly. After all three service hostnames (`www.app.racletty.com`, `www.racletty.com`, and `files.app.racletty.com`) serve valid HTTPS, enable the Cloudflare proxy (orange cloud) and set SSL/TLS mode to Full (strict).
+Initially set them to DNS-only (grey cloud) so Caddy can obtain certificates directly. After all four hostnames (`www.app.racletty.com`, `www.racletty.com`, `racletty.com`, and `files.app.racletty.com`) serve valid HTTPS, enable the Cloudflare proxy (orange cloud) and set SSL/TLS mode to Full (strict).
 
 ## One-time VPS setup
 
@@ -47,7 +47,7 @@ Use a dedicated Linux user for deployments rather than SSH root. The Docker grou
 3. Create `/opt/racletty/.env.production`, owned by `deploy` and mode `600`. Start from `.env.production.example`, then set:
 
    - `APP_DOMAIN=www.app.racletty.com`
-   - `APP_REDIRECT_DOMAINS=www.racletty.com,racletty.com`
+   - `APP_REDIRECT_DOMAIN=www.racletty.com` and `APP_APEX_DOMAIN=racletty.com`
    - `FILES_DOMAIN=files.app.racletty.com`
    - `APP_ORIGIN=https://www.app.racletty.com`
    - `FILES_PUBLIC_ENDPOINT=https://files.app.racletty.com`
