@@ -11,6 +11,18 @@ http://{$FILES_DOMAIN} {
 	redir https://{$FILES_DOMAIN}:{$HTTPS_PORT}{uri} permanent
 }
 
+http://{$APP_REDIRECT_DOMAIN} {
+	redir https://{$APP_DOMAIN}{uri} permanent
+}
+
+http://{$APP_APEX_DOMAIN} {
+	redir https://{$APP_DOMAIN}{uri} permanent
+}
+
+{$APP_REDIRECT_DOMAIN}, {$APP_APEX_DOMAIN} {
+	redir https://{$APP_DOMAIN}{uri} permanent
+}
+
 {$APP_DOMAIN} {
 	encode zstd gzip
 	root * /srv

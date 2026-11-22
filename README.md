@@ -14,7 +14,7 @@ Racletty does not replace CAD or BIM authoring software. It complements existing
 
 **Last updated:** 2026-11-06
 
-The application is being prepared for a controlled alpha. The repository includes a local production-mode build for diagnosis. Server deployment configuration will be added separately once the target environment is selected.
+The application is being prepared for a controlled alpha. The repository includes a local production-mode build for diagnosis and a gated GitHub Actions deployment path for an operator-provisioned Contabo VPS. See [Alpha Deployment](Docs/04%20-%20Operations/Alpha%20Deployment.md) for the one-time server setup and production release steps.
 
 ## Core Product Workflow
 
@@ -122,7 +122,7 @@ The backend integration tests start PostgreSQL and MinIO through the test fixtur
 
 ### Operations
 
-- [Local Production-mode Runbook](Docs/04%20-%20Operations/Alpha%20Deployment.md)
+- [Alpha Deployment](Docs/04%20-%20Operations/Alpha%20Deployment.md)
 
 ## Documentation Conventions
 
