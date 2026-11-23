@@ -60,7 +60,5 @@ http://{$APP_APEX_DOMAIN} {
 		header Access-Control-Max-Age "300"
 		respond 204
 	}
-	header Access-Control-Allow-Origin "{$APP_ORIGIN}"
-	header Access-Control-Expose-Headers "ETag"
 	reverse_proxy minio:9000
 }
